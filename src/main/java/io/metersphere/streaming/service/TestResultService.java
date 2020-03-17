@@ -25,12 +25,13 @@ public class TestResultService {
 
     public void save(Metric metric) {
         LoadTestReport record = new LoadTestReport();
-        record.setTestId(metric.getTestId());
+        String testId = metric.getTestId();
+        record.setTestId(testId);
         long createTime = metric.getTestStartTime();
         record.setCreateTime(createTime);
         record.setUpdateTime(createTime);
         LoadTestReportExample example = new LoadTestReportExample();
-        example.createCriteria().andTestIdEqualTo(metric.getTestId())
+        example.createCriteria().andTestIdEqualTo(testId)
                 .andCreateTimeEqualTo(createTime);
         // 一个jmx同时只能开启一次
         List<LoadTestReport> reports = loadTestReportMapper.selectByExample(example);
@@ -39,6 +40,7 @@ public class TestResultService {
             extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
         } else if (reports.size() == 0) {
             record.setId(UUID.randomUUID().toString());
+            record.setName(metric.getTestName());
             String content = HEADERS + convertToLine(metric);
             record.setContent(content);
             record.setStatus(TestStatus.Running.name());
