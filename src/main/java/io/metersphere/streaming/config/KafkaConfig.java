@@ -8,10 +8,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
-@PropertySource("file:/opt/fit2cloud/conf/data-streaming.properties")
+@PropertySource("file:/opt/fit2cloud/conf/metersphere.properties")
 public class KafkaConfig {
 
-    @Value("${topic.name}")
+    @Value("${kafka.topic}")
     private String topic;
 
     @Bean

@@ -11,7 +11,7 @@ import javax.annotation.Resource;
 @Slf4j
 public class Producer {
 
-    @Value("${topic.name}")
+    @Value("${kafka.topic}")
     private String topic;
     @Resource
     private KafkaTemplate<String, Object> kafkaTemplate;

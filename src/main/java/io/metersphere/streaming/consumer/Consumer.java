@@ -16,7 +16,7 @@ public class Consumer {
     @Resource
     private ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "${topic.name}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "${kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(ConsumerRecord<?, String> record) throws IOException {
         Metric value = objectMapper.readValue(record.value(), Metric.class);
         log.info(String.format("A consumed message -> %s", value));
