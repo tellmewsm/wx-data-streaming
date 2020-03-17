@@ -10,7 +10,7 @@ public class Metric {
     @JsonProperty("test.id")
     private String testId;
     @JsonProperty("test.name")
-    private String testName = "";
+    private String testName;
     @JsonProperty("ContentType")
     private String contentType;
     @JsonProperty("IdleTime")
