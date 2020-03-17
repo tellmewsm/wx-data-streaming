@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class TestResultService {
-    private static final String HEADERS = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect\n";
+    private static final String HEADERS = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
     @Resource
     private LoadTestReportMapper loadTestReportMapper;
     @Resource
@@ -41,10 +41,11 @@ public class TestResultService {
         } else if (reports.size() == 0) {
             record.setId(UUID.randomUUID().toString());
             record.setName(metric.getTestName());
-            String content = HEADERS + convertToLine(metric);
-            record.setContent(content);
+            record.setContent(HEADERS);
             record.setStatus(TestStatus.Running.name());
             loadTestReportMapper.insert(record);
+            // 补充内容
+            extLoadTestReportMapper.appendLine(record.getId(), "\n" + convertToLine(metric));
         }
         LogUtil.debug(String.format("A consumed message -> %s", metric));
     }
