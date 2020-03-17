@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -34,9 +35,10 @@ public class TestResultService {
         // 一个jmx同时只能开启一次
         List<LoadTestReport> reports = loadTestReportMapper.selectByExample(example);
         if (reports.size() == 1) {
-            LoadTestReport loadTestReport = reports.get(0);
-            extLoadTestReportMapper.appendLine(loadTestReport.getId(), convertToLine(metric));
+            LoadTestReport report = reports.get(0);
+            extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
         } else if (reports.size() == 0) {
+            record.setId(UUID.randomUUID().toString());
             String content = HEADERS + convertToLine(metric);
             record.setContent(content);
             record.setStatus(TestStatus.Running.name());

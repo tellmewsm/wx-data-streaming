@@ -1,4 +1,4 @@
-package io.metersphere.streaming.producer;
+package io.metersphere.streaming.engine.producer;
 
 import io.metersphere.streaming.commons.utils.LogUtil;
 import org.springframework.beans.factory.annotation.Value;

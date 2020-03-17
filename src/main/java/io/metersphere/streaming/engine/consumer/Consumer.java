@@ -1,4 +1,4 @@
-package io.metersphere.streaming.consumer;
+package io.metersphere.streaming.engine.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.model.Metric;
