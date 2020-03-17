@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,12 +57,16 @@ public class TestResultService {
 
     private String convertToLine(Metric metric) throws UnsupportedEncodingException {
         //timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+        long start = metric.getTimestamp().getTime();
+        Date end = metric.getElapsedTime();
         StringBuilder content = new StringBuilder();
-        content.append(metric.getTimestamp()).append(",");
-        content.append(metric.getElapsedTime()).append(",");
+        content.append(start).append(",");
+        int elapsed = getElapsed(end);
+        content.append(elapsed).append(",");
         content.append(metric.getSampleLabel()).append(",");
         content.append(metric.getResponseCode()).append(",");
-        content.append(metric.getResponseCode()).append(",");
+        // response message
+        content.append(",");
         content.append(metric.getThreadName()).append(",");
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
@@ -79,5 +85,14 @@ public class TestResultService {
         content.append(metric.getIdleTime()).append(",");
         content.append(metric.getConnectTime()).append("\n");
         return content.toString();
+    }
+
+    private int getElapsed(Date end) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(end);
+        int hours = calendar.get(Calendar.HOUR_OF_DAY);
+        int minutes = calendar.get(Calendar.MINUTE);
+        int seconds = calendar.get(Calendar.SECOND);
+        return hours * 60 * 60 + minutes * 60 + seconds;
     }
 }

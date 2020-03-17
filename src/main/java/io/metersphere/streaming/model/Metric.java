@@ -1,8 +1,10 @@
 package io.metersphere.streaming.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -16,11 +18,13 @@ public class Metric {
     @JsonProperty("IdleTime")
     private Integer idleTime;
     @JsonProperty("ElapsedTime")
-    private String elapsedTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+    private Date elapsedTime;
     @JsonProperty("ErrorCount")
     private Integer errorCount;
     @JsonProperty("Timestamp")
-    private String timestamp;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+    private Date timestamp;
     @JsonProperty("URL")
     private String url;
     @JsonProperty("SampleStartTime")
