@@ -7,6 +7,8 @@ import java.util.List;
 
 @Data
 public class Metric {
+    @JsonProperty("test.id")
+    private String testId;
     @JsonProperty("ContentType")
     private String contentType;
     @JsonProperty("IdleTime")
