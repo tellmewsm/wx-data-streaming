@@ -7,6 +7,7 @@ import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Metric;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +69,12 @@ public class TestResultService {
         content.append(metric.getSentBytes()).append(",");
         content.append(metric.getGrpThreads()).append(",");
         content.append(metric.getAllThreads()).append(",");
-        content.append(URLEncoder.encode(metric.getUrl(), "UTF-8")).append(",");
+        // 处理url换行问题
+        if (StringUtils.isNotBlank(metric.getUrl())) {
+            content.append(URLEncoder.encode(metric.getUrl(), "UTF-8")).append(",");
+        } else {
+            content.append(",");
+        }
         content.append(metric.getLatency()).append(",");
         content.append(metric.getIdleTime()).append(",");
         content.append(metric.getConnectTime()).append("\n");
