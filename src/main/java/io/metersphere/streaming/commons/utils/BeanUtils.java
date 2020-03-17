@@ -1,11 +1,10 @@
-package io.metersphere.streaming.commons;
+package io.metersphere.streaming.commons.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
 
-@Slf4j
+
 public class BeanUtils {
 
     public static <T> T copyBean(T target, Object source) {
@@ -36,7 +35,7 @@ public class BeanUtils {
             Method method = bean.getClass().getMethod(getter);
             return method.invoke(bean);
         } catch (Exception e) {
-            log.error("failed to getFieldValueByName. ", e);
+            LogUtil.error("failed to getFieldValueByName. ", e);
             return null;
         }
     }
@@ -51,7 +50,7 @@ public class BeanUtils {
             Method method = bean.getClass().getMethod(setter, type);
             method.invoke(bean, value);
         } catch (Exception e) {
-            log.error("failed to setFieldValueByName. ", e);
+            LogUtil.error("failed to setFieldValueByName. ", e);
         }
     }
 

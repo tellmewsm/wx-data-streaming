@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-@MapperScan(basePackages = "io.metersphere.streaming.base.mapper", sqlSessionFactoryRef = "sqlSessionFactory")
+@MapperScan(basePackages = "io.metersphere.streaming.base.mapper")
 @EnableTransactionManagement
 @PropertySource(value = {"file:/opt/fit2cloud/conf/metersphere.properties"}, encoding = "UTF-8", ignoreResourceNotFound = true)
 public class MybatisConfig {
@@ -23,7 +23,7 @@ public class MybatisConfig {
     public MybatisInterceptor dbInterceptor() {
         MybatisInterceptor interceptor = new MybatisInterceptor();
         List<MybatisInterceptorConfig> configList = new ArrayList<>();
-        configList.add(new MybatisInterceptorConfig("io.metersphere.streaming.base.domain.FileContent", "file", "io.metersphere.commons.utils.CompressUtils", "zip", "unzip"));
+        configList.add(new MybatisInterceptorConfig("io.metersphere.streaming.base.domain.FileContent", "file", "io.metersphere.streaming.commons.utils.CompressUtils", "zip", "unzip"));
         interceptor.setInterceptorConfigList(configList);
         return interceptor;
     }
