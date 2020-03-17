@@ -20,7 +20,7 @@ import java.util.UUID;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class TestResultService {
-    private static final String HEADERS = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
+    private static final String HEADERS = "timestamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
     @Resource
     private LoadTestReportMapper loadTestReportMapper;
     @Resource
