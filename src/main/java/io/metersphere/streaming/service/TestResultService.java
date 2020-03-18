@@ -31,8 +31,6 @@ public class TestResultService {
         String testId = metric.getTestId();
         record.setTestId(testId);
         long createTime = metric.getTestStartTime();
-        record.setCreateTime(createTime);
-        record.setUpdateTime(createTime);
         LoadTestReportExample example = new LoadTestReportExample();
         example.createCriteria().andTestIdEqualTo(testId)
                 .andCreateTimeEqualTo(createTime);
@@ -40,10 +38,18 @@ public class TestResultService {
         List<LoadTestReport> reports = loadTestReportMapper.selectByExample(example);
         if (reports.size() == 1) {
             LoadTestReport report = reports.get(0);
-            extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
+            if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
+                record.setUpdateTime(System.currentTimeMillis());
+                record.setStatus(TestStatus.Completed.name());
+                loadTestReportMapper.updateByPrimaryKeySelective(record);
+            } else {
+                extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
+            }
         } else if (reports.size() == 0) {
             record.setId(UUID.randomUUID().toString());
             record.setName(metric.getTestName());
+            record.setCreateTime(createTime);
+            record.setUpdateTime(createTime);
             record.setContent(HEADERS);
             record.setStatus(TestStatus.Running.name());
             loadTestReportMapper.insert(record);
@@ -91,6 +97,6 @@ public class TestResultService {
         int hours = calendar.get(Calendar.HOUR_OF_DAY);
         int minutes = calendar.get(Calendar.MINUTE);
         int seconds = calendar.get(Calendar.SECOND);
-        return hours * 60 * 60 + minutes * 60 + seconds;
+        return minutes * 60 + seconds;
     }
 }
