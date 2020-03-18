@@ -56,8 +56,8 @@ public class TestResultService {
             loadTestReportMapper.insert(record);
             // 补充内容
             extLoadTestReportMapper.appendLine(record.getId(), "\n" + convertToLine(metric));
+            LogUtil.info("test started: " + metric.getTestName());
         }
-        LogUtil.debug(String.format("A consumed message -> %s", metric));
     }
 
     private String convertToLine(Metric metric) {
