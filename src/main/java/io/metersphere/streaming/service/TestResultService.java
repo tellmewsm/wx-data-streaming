@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +26,7 @@ public class TestResultService {
     @Resource
     private ExtLoadTestReportMapper extLoadTestReportMapper;
 
-    public void save(Metric metric) throws UnsupportedEncodingException {
+    public void save(Metric metric) {
         LoadTestReport record = new LoadTestReport();
         String testId = metric.getTestId();
         record.setTestId(testId);
@@ -55,7 +53,7 @@ public class TestResultService {
         LogUtil.debug(String.format("A consumed message -> %s", metric));
     }
 
-    private String convertToLine(Metric metric) throws UnsupportedEncodingException {
+    private String convertToLine(Metric metric) {
         //timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
         long start = metric.getTimestamp().getTime();
         Date end = metric.getElapsedTime();
@@ -77,7 +75,7 @@ public class TestResultService {
         content.append(metric.getAllThreads()).append(",");
         // 处理url换行问题
         if (StringUtils.isNotBlank(metric.getUrl())) {
-            content.append(URLEncoder.encode(metric.getUrl(), "UTF-8")).append(",");
+            content.append(StringUtils.deleteWhitespace(metric.getUrl())).append(",");
         } else {
             content.append(",");
         }
