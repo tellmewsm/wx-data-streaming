@@ -42,6 +42,7 @@ public class TestResultService {
                 report.setUpdateTime(System.currentTimeMillis());
                 report.setStatus(TestStatus.Completed.name());
                 loadTestReportMapper.updateByPrimaryKeySelective(report);
+                LogUtil.info("test completed: " + metric.getTestName());
             } else {
                 extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
             }
