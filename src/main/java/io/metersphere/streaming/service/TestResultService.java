@@ -39,9 +39,9 @@ public class TestResultService {
         if (reports.size() == 1) {
             LoadTestReport report = reports.get(0);
             if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
-                record.setUpdateTime(System.currentTimeMillis());
-                record.setStatus(TestStatus.Completed.name());
-                loadTestReportMapper.updateByPrimaryKeySelective(record);
+                report.setUpdateTime(System.currentTimeMillis());
+                report.setStatus(TestStatus.Completed.name());
+                loadTestReportMapper.updateByPrimaryKeySelective(report);
             } else {
                 extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
             }
