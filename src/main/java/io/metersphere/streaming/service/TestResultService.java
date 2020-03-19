@@ -27,6 +27,10 @@ public class TestResultService {
     private ExtLoadTestReportMapper extLoadTestReportMapper;
 
     public void save(Metric metric) {
+        // 如果 testid 为空，无法关联到test，此条消息作废
+        if (StringUtils.isBlank(metric.getTestId())) {
+            return;
+        }
         LoadTestReport record = new LoadTestReport();
         String testId = metric.getTestId();
         record.setTestId(testId);
