@@ -1,8 +1,8 @@
 package io.metersphere.streaming.service;
 
-import io.metersphere.streaming.base.domain.LoadTest;
 import io.metersphere.streaming.base.domain.LoadTestReport;
 import io.metersphere.streaming.base.domain.LoadTestReportExample;
+import io.metersphere.streaming.base.domain.LoadTestWithBLOBs;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
@@ -51,10 +51,10 @@ public class TestResultService {
                 report.setStatus(TestStatus.Completed.name());
                 loadTestReportMapper.updateByPrimaryKeySelective(report);
                 // 更新测试的状态
-                LoadTest loadTest = new LoadTest();
+                LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
                 loadTest.setId(testId);
                 loadTest.setStatus(TestStatus.Completed.name());
-                loadTestMapper.updateByPrimaryKey(loadTest);
+                loadTestMapper.updateByPrimaryKeySelective(loadTest);
                 LogUtil.info("test completed: " + metric.getTestName());
             } else {
                 extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
