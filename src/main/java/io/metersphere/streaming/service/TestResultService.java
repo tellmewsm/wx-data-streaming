@@ -69,11 +69,6 @@ public class TestResultService {
             loadTestReportMapper.insert(record);
             // 补充内容
             extLoadTestReportMapper.appendLine(record.getId(), "\n" + convertToLine(metric));
-            // 更新测试的状态
-            LoadTest loadTest = new LoadTest();
-            loadTest.setId(testId);
-            loadTest.setStatus(TestStatus.Running.name());
-            loadTestMapper.updateByPrimaryKey(loadTest);
             LogUtil.info("test started: " + metric.getTestName());
         }
     }
