@@ -11,8 +11,6 @@ public class LoadTestReport implements Serializable {
 
     private String description;
 
-    private String fileId;
-
     private Long createTime;
 
     private Long updateTime;
@@ -53,14 +51,6 @@ public class LoadTestReport implements Serializable {
 
     public void setDescription(String description) {
         this.description = description == null ? null : description.trim();
-    }
-
-    public String getFileId() {
-        return fileId;
-    }
-
-    public void setFileId(String fileId) {
-        this.fileId = fileId == null ? null : fileId.trim();
     }
 
     public Long getCreateTime() {

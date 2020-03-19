@@ -46,7 +46,6 @@
 
         <!--要生成的数据库表 -->
         <table tableName="load_test_report"/>
-        <table tableName="file_content"/>
-        <table tableName="file_metadata"/>
+
     </context>
 </generatorConfiguration>

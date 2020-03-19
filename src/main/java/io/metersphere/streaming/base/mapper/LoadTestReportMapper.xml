@@ -6,7 +6,6 @@
     <result column="test_id" jdbcType="VARCHAR" property="testId" />
     <result column="name" jdbcType="VARCHAR" property="name" />
     <result column="description" jdbcType="VARCHAR" property="description" />
-    <result column="file_id" jdbcType="VARCHAR" property="fileId" />
     <result column="create_time" jdbcType="BIGINT" property="createTime" />
     <result column="update_time" jdbcType="BIGINT" property="updateTime" />
     <result column="status" jdbcType="VARCHAR" property="status" />
@@ -73,7 +72,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, test_id, name, description, file_id, create_time, update_time, status
+    id, test_id, name, description, create_time, update_time, status
   </sql>
   <sql id="Blob_Column_List">
     content
@@ -128,13 +127,11 @@
   </delete>
   <insert id="insert" parameterType="io.metersphere.streaming.base.domain.LoadTestReport">
     insert into load_test_report (id, test_id, name, 
-      description, file_id, create_time, 
-      update_time, status, content
-      )
+      description, create_time, update_time, 
+      status, content)
     values (#{id,jdbcType=VARCHAR}, #{testId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
-      #{description,jdbcType=VARCHAR}, #{fileId,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
-      #{updateTime,jdbcType=BIGINT}, #{status,jdbcType=VARCHAR}, #{content,jdbcType=LONGVARCHAR}
-      )
+      #{description,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, #{updateTime,jdbcType=BIGINT}, 
+      #{status,jdbcType=VARCHAR}, #{content,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="io.metersphere.streaming.base.domain.LoadTestReport">
     insert into load_test_report
@@ -150,9 +147,6 @@
       </if>
       <if test="description != null">
         description,
-      </if>
-      <if test="fileId != null">
-        file_id,
       </if>
       <if test="createTime != null">
         create_time,
@@ -179,9 +173,6 @@
       </if>
       <if test="description != null">
         #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="fileId != null">
-        #{fileId,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=BIGINT},
@@ -218,9 +209,6 @@
       <if test="record.description != null">
         description = #{record.description,jdbcType=VARCHAR},
       </if>
-      <if test="record.fileId != null">
-        file_id = #{record.fileId,jdbcType=VARCHAR},
-      </if>
       <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=BIGINT},
       </if>
@@ -244,7 +232,6 @@
       test_id = #{record.testId,jdbcType=VARCHAR},
       name = #{record.name,jdbcType=VARCHAR},
       description = #{record.description,jdbcType=VARCHAR},
-      file_id = #{record.fileId,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=BIGINT},
       update_time = #{record.updateTime,jdbcType=BIGINT},
       status = #{record.status,jdbcType=VARCHAR},
@@ -259,7 +246,6 @@
       test_id = #{record.testId,jdbcType=VARCHAR},
       name = #{record.name,jdbcType=VARCHAR},
       description = #{record.description,jdbcType=VARCHAR},
-      file_id = #{record.fileId,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=BIGINT},
       update_time = #{record.updateTime,jdbcType=BIGINT},
       status = #{record.status,jdbcType=VARCHAR}
@@ -278,9 +264,6 @@
       </if>
       <if test="description != null">
         description = #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="fileId != null">
-        file_id = #{fileId,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=BIGINT},
@@ -302,7 +285,6 @@
     set test_id = #{testId,jdbcType=VARCHAR},
       name = #{name,jdbcType=VARCHAR},
       description = #{description,jdbcType=VARCHAR},
-      file_id = #{fileId,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=BIGINT},
       update_time = #{updateTime,jdbcType=BIGINT},
       status = #{status,jdbcType=VARCHAR},
@@ -314,7 +296,6 @@
     set test_id = #{testId,jdbcType=VARCHAR},
       name = #{name,jdbcType=VARCHAR},
       description = #{description,jdbcType=VARCHAR},
-      file_id = #{fileId,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=BIGINT},
       update_time = #{updateTime,jdbcType=BIGINT},
       status = #{status,jdbcType=VARCHAR}

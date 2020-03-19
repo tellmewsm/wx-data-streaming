@@ -3,11 +3,9 @@ package io.metersphere.streaming.base.mapper;
 import io.metersphere.streaming.base.domain.LoadTestReport;
 import io.metersphere.streaming.base.domain.LoadTestReportExample;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface LoadTestReportMapper {
     long countByExample(LoadTestReportExample example);
 
