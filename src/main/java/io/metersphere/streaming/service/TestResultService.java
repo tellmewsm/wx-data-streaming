@@ -1,7 +1,9 @@
 package io.metersphere.streaming.service;
 
+import io.metersphere.streaming.base.domain.LoadTest;
 import io.metersphere.streaming.base.domain.LoadTestReport;
 import io.metersphere.streaming.base.domain.LoadTestReportExample;
+import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
@@ -25,6 +27,8 @@ public class TestResultService {
     private LoadTestReportMapper loadTestReportMapper;
     @Resource
     private ExtLoadTestReportMapper extLoadTestReportMapper;
+    @Resource
+    private LoadTestMapper loadTestMapper;
 
     public void save(Metric metric) {
         // 如果 testid 为空，无法关联到test，此条消息作废
@@ -46,6 +50,11 @@ public class TestResultService {
                 report.setUpdateTime(System.currentTimeMillis());
                 report.setStatus(TestStatus.Completed.name());
                 loadTestReportMapper.updateByPrimaryKeySelective(report);
+                // 更新测试的状态
+                LoadTest loadTest = new LoadTest();
+                loadTest.setId(testId);
+                loadTest.setStatus(TestStatus.Completed.name());
+                loadTestMapper.updateByPrimaryKey(loadTest);
                 LogUtil.info("test completed: " + metric.getTestName());
             } else {
                 extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
@@ -60,6 +69,11 @@ public class TestResultService {
             loadTestReportMapper.insert(record);
             // 补充内容
             extLoadTestReportMapper.appendLine(record.getId(), "\n" + convertToLine(metric));
+            // 更新测试的状态
+            LoadTest loadTest = new LoadTest();
+            loadTest.setId(testId);
+            loadTest.setStatus(TestStatus.Running.name());
+            loadTestMapper.updateByPrimaryKey(loadTest);
             LogUtil.info("test started: " + metric.getTestName());
         }
     }
