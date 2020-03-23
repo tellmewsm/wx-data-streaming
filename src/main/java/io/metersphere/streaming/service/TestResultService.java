@@ -38,8 +38,7 @@ public class TestResultService {
         LoadTestReport record = new LoadTestReport();
         String testId = metric.getTestId();
         record.setTestId(testId);
-        // todo 开始时间指定
-        long createTime = metric.getTestStartTime();
+        long createTime = metric.getClusterStartTime();
         LoadTestReportExample example = new LoadTestReportExample();
         example.createCriteria().andTestIdEqualTo(testId)
                 .andCreateTimeEqualTo(createTime);
