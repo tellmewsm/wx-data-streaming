@@ -13,6 +13,8 @@ public class Metric {
     private String testId;
     @JsonProperty("test.name")
     private String testName;
+    @JsonProperty("test.startTime")
+    private Long clusterStartTime;
     @JsonProperty("ContentType")
     private String contentType;
     @JsonProperty("IdleTime")
