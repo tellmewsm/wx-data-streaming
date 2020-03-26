@@ -4,9 +4,9 @@ MAINTAINER FIT2CLOUD <support@fit2cloud.com>
 
 RUN mkdir -p /opt/apps
 
-ADD target/data-streaming-0.0.1.jar /opt/apps
+ADD target/data-streaming-1.0.jar /opt/apps
 
-ENV JAVA_APP_JAR=/opt/apps/data-streaming-0.0.1.jar
+ENV JAVA_APP_JAR=/opt/apps/data-streaming-1.0.jar
 
 ENV AB_OFF=true
 

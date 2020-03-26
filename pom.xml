@@ -8,9 +8,9 @@
         <version>2.2.5.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>metersphere.io</groupId>
+    <groupId>io.metersphere</groupId>
     <artifactId>data-streaming</artifactId>
-    <version>0.0.1</version>
+    <version>1.0</version>
     <name>data-streaming</name>
 
     <properties>
