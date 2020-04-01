@@ -4,6 +4,7 @@ import io.metersphere.streaming.base.domain.LoadTestReportWithBLOBs;
 import io.metersphere.streaming.base.domain.LoadTestWithBLOBs;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
+import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.LogUtil;
@@ -23,6 +24,8 @@ public class TestResultService {
     private ExtLoadTestReportMapper extLoadTestReportMapper;
     @Resource
     private LoadTestMapper loadTestMapper;
+    @Resource
+    private ExtLoadTestMapper extLoadTestMapper;
 
     public void save(Metric metric) {
         // 如果 testid 为空，无法关联到test，此条消息作废
@@ -45,7 +48,8 @@ public class TestResultService {
             loadTestMapper.updateByPrimaryKeySelective(loadTest);
             LogUtil.info("test completed: " + metric.getTestName());
         } else {
-            extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric));
+            extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric), TestStatus.Running.name());
+            extLoadTestMapper.updateStatus(metric.getTestId(), TestStatus.Running.name());
         }
     }
 
