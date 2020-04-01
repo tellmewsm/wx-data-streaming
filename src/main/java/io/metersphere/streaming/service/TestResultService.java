@@ -40,6 +40,7 @@ public class TestResultService {
             loadTestReportMapper.updateByPrimaryKeySelective(report);
             // 更新测试的状态
             LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
+            loadTest.setId(metric.getTestId());
             loadTest.setStatus(TestStatus.Completed.name());
             loadTestMapper.updateByPrimaryKeySelective(loadTest);
             LogUtil.info("test completed: " + metric.getTestName());
