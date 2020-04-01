@@ -1,7 +1,6 @@
 package io.metersphere.streaming.service;
 
-import io.metersphere.streaming.base.domain.LoadTestReport;
-import io.metersphere.streaming.base.domain.LoadTestReportExample;
+import io.metersphere.streaming.base.domain.LoadTestReportWithBLOBs;
 import io.metersphere.streaming.base.domain.LoadTestWithBLOBs;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
@@ -15,12 +14,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class TestResultService {
-    private static final String HEADERS = "timestamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
     @Resource
     private LoadTestReportMapper loadTestReportMapper;
     @Resource
@@ -33,41 +29,22 @@ public class TestResultService {
         if (StringUtils.isBlank(metric.getTestId())) {
             return;
         }
-        LoadTestReport record = new LoadTestReport();
-        String testId = metric.getTestId();
-        record.setTestId(testId);
-        long createTime = metric.getClusterStartTime();
-        LoadTestReportExample example = new LoadTestReportExample();
-        example.createCriteria().andTestIdEqualTo(testId)
-                .andCreateTimeEqualTo(createTime);
-        // 一个jmx同时只能开启一次
-        List<LoadTestReport> reports = loadTestReportMapper.selectByExample(example);
-        if (reports.size() == 1) {
-            LoadTestReport report = reports.get(0);
-            if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
-                report.setUpdateTime(System.currentTimeMillis());
-                report.setStatus(TestStatus.Completed.name());
-                loadTestReportMapper.updateByPrimaryKeySelective(report);
-                // 更新测试的状态
-                LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
-                loadTest.setId(testId);
-                loadTest.setStatus(TestStatus.Completed.name());
-                loadTestMapper.updateByPrimaryKeySelective(loadTest);
-                LogUtil.info("test completed: " + metric.getTestName());
-            } else {
-                extLoadTestReportMapper.appendLine(report.getId(), convertToLine(metric));
-            }
-        } else if (reports.size() == 0) {
-            record.setId(UUID.randomUUID().toString());
-            record.setName(metric.getTestName());
-            record.setCreateTime(createTime);
-            record.setUpdateTime(createTime);
-            record.setContent(HEADERS);
-            record.setStatus(TestStatus.Running.name());
-            loadTestReportMapper.insert(record);
-            // 补充内容
-            extLoadTestReportMapper.appendLine(record.getId(), "\n" + convertToLine(metric));
-            LogUtil.info("test started: " + metric.getTestName());
+        if (StringUtils.isBlank(metric.getReportId())) {
+            LogUtil.warn("ReportId is null");
+            return;
+        }
+        if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
+            LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
+            report.setUpdateTime(System.currentTimeMillis());
+            report.setStatus(TestStatus.Completed.name());
+            loadTestReportMapper.updateByPrimaryKeySelective(report);
+            // 更新测试的状态
+            LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
+            loadTest.setStatus(TestStatus.Completed.name());
+            loadTestMapper.updateByPrimaryKeySelective(loadTest);
+            LogUtil.info("test completed: " + metric.getTestName());
+        } else {
+            extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric));
         }
     }
 
