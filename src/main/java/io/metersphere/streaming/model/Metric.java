@@ -58,7 +58,7 @@ public class Metric {
     @JsonProperty("TestStartTime")
     private Long testStartTime;
     @JsonProperty("AssertionResults")
-    private List<String> assertionResults;
+    private List<Object> assertionResults;
     @JsonProperty("Latency")
     private Integer latency;
     @JsonProperty("InjectorHostname")
