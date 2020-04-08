@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -74,7 +73,7 @@ public class TestResultService {
         content.append(metric.getSuccess()).append(",");
         // failure message contains \n
         try {
-            String message = URLEncoder.encode(metric.getFailureMessage(), StandardCharsets.UTF_8.displayName());
+            String message = URLEncoder.encode(metric.getFailureMessage(), "UTF-8");
             content.append(message).append(",");
         } catch (UnsupportedEncodingException e) {
             content.append("Error UnsupportedEncodingException").append(",");
