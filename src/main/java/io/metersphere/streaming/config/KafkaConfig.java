@@ -13,7 +13,7 @@ public class KafkaConfig {
 
     @Value("${kafka.topic}")
     private String topic;
-    @Value("${kafka.partitions:3}")
+    @Value("${kafka.partitions:1}")
     private Integer partitions;
     @Value("${kafka.replicas:1}")
     private Integer replicas;
