@@ -38,6 +38,7 @@ public class TestResultService {
         }
         if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
             LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
+            LogUtil.info("test tearDown message received, report: ", report);
             report.setUpdateTime(System.currentTimeMillis());
             report.setStatus(TestStatus.Completed.name());
             loadTestReportMapper.updateByPrimaryKeySelective(report);

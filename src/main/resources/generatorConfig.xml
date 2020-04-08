@@ -10,7 +10,12 @@
     <context id="mysql" targetRuntime="MyBatis3">
         <plugin type="org.mybatis.generator.plugins.SerializablePlugin"/>
         <plugin type="org.mybatis.generator.plugins.UnmergeableXmlMappersPlugin" />
-
+        <plugin type="com.softwareloop.mybatis.generator.plugins.LombokPlugin">
+            <!-- enable annotations -->
+<!--            <property name="builder" value="true"/>-->
+            <!-- disable annotations -->
+<!--            <property name="allArgsConstructor" value="false"/>-->
+        </plugin>
         <!-- 用来除去时间信息的，这在配合类似subversion的代码管理工具时使用很有效，因为可以减少没有必要的注释迁入 -->
         <commentGenerator>
             <property name="suppressDate" value="true"/>

@@ -118,6 +118,11 @@
                         <artifactId>mysql-connector-java</artifactId>
                         <version>5.1.41</version>
                     </dependency>
+                    <dependency>
+                        <groupId>com.softwareloop</groupId>
+                        <artifactId>mybatis-generator-lombok-plugin</artifactId>
+                        <version>1.0</version>
+                    </dependency>
                 </dependencies>
             </plugin>
             <!--<plugin>
