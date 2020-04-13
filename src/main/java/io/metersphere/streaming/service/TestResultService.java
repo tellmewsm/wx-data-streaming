@@ -44,22 +44,8 @@ public class TestResultService {
             LogUtil.warn("ReportId is null");
             return;
         }
-        if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
-            LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
-            LogUtil.info("test tearDown message received, report:{}, test:{} ", report.getId(), report.getTestId());
-            report.setUpdateTime(System.currentTimeMillis());
-            report.setStatus(TestStatus.Completed.name());
-            loadTestReportMapper.updateByPrimaryKeySelective(report);
-            // 更新测试的状态
-            LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
-            loadTest.setId(metric.getTestId());
-            loadTest.setStatus(TestStatus.Completed.name());
-            loadTestMapper.updateByPrimaryKeySelective(loadTest);
-            LogUtil.info("test completed: " + metric.getTestName());
-        } else {
-            extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric), TestStatus.Running.name());
-            extLoadTestMapper.updateStatus(metric.getTestId(), TestStatus.Running.name());
-        }
+        extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric), TestStatus.Running.name());
+        extLoadTestMapper.updateStatus(metric.getTestId(), TestStatus.Running.name());
     }
 
     public void saveDetail(Metric metric) {
@@ -69,9 +55,6 @@ public class TestResultService {
         }
         if (StringUtils.isBlank(metric.getReportId())) {
             LogUtil.warn("ReportId is null");
-            return;
-        }
-        if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
             return;
         }
         extLoadTestReportDetailMapper.appendLine(metric.getReportId(), convertToLine(metric));
@@ -122,5 +105,19 @@ public class TestResultService {
         int minutes = calendar.get(Calendar.MINUTE);
         int seconds = calendar.get(Calendar.SECOND);
         return minutes * 60 + seconds;
+    }
+
+    public void completeReport(Metric metric) {
+        LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
+        LogUtil.info("test tearDown message received, report:{}, test:{} ", report.getId(), report.getTestId());
+        report.setUpdateTime(System.currentTimeMillis());
+        report.setStatus(TestStatus.Completed.name());
+        loadTestReportMapper.updateByPrimaryKeySelective(report);
+        // 更新测试的状态
+        LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
+        loadTest.setId(metric.getTestId());
+        loadTest.setStatus(TestStatus.Completed.name());
+        loadTestMapper.updateByPrimaryKeySelective(loadTest);
+        LogUtil.info("test completed: " + metric.getTestName());
     }
 }

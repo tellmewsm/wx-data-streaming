@@ -1,6 +1,7 @@
 package io.metersphere.streaming.engine.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.service.TestResultService;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,10 @@ public class Consumer {
     @KafkaListener(id = CONSUME_ID, topics = "${kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(ConsumerRecord<?, String> record) throws Exception {
         Metric metric = objectMapper.readValue(record.value(), Metric.class);
+        if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
+            testResultService.completeReport(metric);
+            return;
+        }
         testResultService.saveDetail(metric);
         metricQueue.put(metric);
     }
@@ -54,6 +59,7 @@ public class Consumer {
                     // 长度达到 queue_size save 一次
                     int size = metrics.size();
                     if (size >= QUEUE_SIZE) {
+                        LogUtil.info("save metrics size: " + size);
                         save();
                     }
                 } catch (Exception e) {
@@ -70,9 +76,10 @@ public class Consumer {
                     // 确保 metrics 全部被保存
                     int size = metrics.size();
                     if (metricQueue.isEmpty() && size > 0 && size < QUEUE_SIZE) {
+                        LogUtil.info("save metrics size: " + size);
                         save();
                     }
-                    Thread.sleep(10 * 1000);
+                    Thread.sleep(60 * 1000);
                 } catch (Exception e) {
                 }
             }
