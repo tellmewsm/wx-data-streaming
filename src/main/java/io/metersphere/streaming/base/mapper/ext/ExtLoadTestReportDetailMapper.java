@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExtLoadTestReportDetailMapper {
     @Update({"UPDATE load_test_report_detail ",
-            "SET content = concat(content, #{line}), ",
+            "SET content = concat(content, #{line}) ",
             "WHERE report_id = #{id}"})
     int appendLine(@Param("id") String id, @Param("line") String line);
 }
