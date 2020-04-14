@@ -81,7 +81,7 @@ public class Consumer {
                         LogUtil.info("save metrics size: " + size);
                         save();
                     }
-                    Thread.sleep(10 * 1000);
+                    Thread.sleep(20 * 1000);
                 } catch (Exception e) {
                 }
             }
@@ -106,7 +106,20 @@ public class Consumer {
         // todo 处理分组字段
         // 每个报告分组字段, 每秒, url, response-code
         Date timestamp = metric.getTimestamp();
-        return StringUtils.joinWith("|", timestamp.getTime() / 1000, metric.getUrl(), metric.getResponseCode());
+        long l = divide5Seconds(timestamp.getTime());
+        return StringUtils.joinWith("|", l, metric.getUrl(), metric.getResponseCode());
     }
 
+    private static long divide5Seconds(long timestamp) {
+        long l = timestamp / 1000;
+        long mod = l % 10;
+        long quotient = l / 10;
+        if (mod < 5) {
+            l = quotient * 10;
+        }
+        if (mod > 5) {
+            l = quotient * 10 + 5;
+        }
+        return l;
+    }
 }

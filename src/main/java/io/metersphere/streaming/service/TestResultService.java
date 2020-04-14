@@ -57,6 +57,9 @@ public class TestResultService {
             LogUtil.warn("ReportId is null");
             return;
         }
+        if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
+            return;
+        }
         extLoadTestReportDetailMapper.appendLine(metric.getReportId(), convertToLine(metric));
     }
 
