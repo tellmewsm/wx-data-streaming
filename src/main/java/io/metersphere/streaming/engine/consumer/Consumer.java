@@ -97,7 +97,7 @@ public class Consumer {
                 int size = m.size();
                 if (size > 0) {
                     m.sort((c1, c2) -> c2.getTimestamp().compareTo(c1.getTimestamp()));
-                    // 去最后一个点
+                    // 最后一个点
                     Metric metric = m.get(0);
                     testResultService.save(metric);
                 }
