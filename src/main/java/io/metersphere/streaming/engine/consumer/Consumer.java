@@ -94,8 +94,11 @@ public class Consumer {
         reportMetrics.forEach((r, ms) -> {
             Map<String, List<Metric>> rMetrics = ms.stream().collect(Collectors.groupingBy(this::fetchGroupKey));
             rMetrics.forEach((s, m) -> {
-                Metric metric = m.stream().findFirst().get();
-                testResultService.save(metric);
+                int size = m.size();
+                if (size > 0) {
+                    Metric metric = m.get(size - 1);
+                    testResultService.save(metric);
+                }
             });
         });
         // 清空 list
