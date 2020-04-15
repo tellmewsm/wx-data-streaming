@@ -15,8 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -74,17 +72,13 @@ public class TestResultService {
         content.append(metric.getSampleLabel()).append(",");
         content.append(metric.getResponseCode()).append(",");
         // response message
-        content.append(",");
+        content.append("null").append(",");
         content.append(metric.getThreadName()).append(",");
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
         // failure message contains \n
-        try {
-            String message = URLEncoder.encode(metric.getFailureMessage(), "UTF-8");
-            content.append(message).append(",");
-        } catch (UnsupportedEncodingException e) {
-            content.append("Error UnsupportedEncodingException").append(",");
-        }
+        String message = StringUtils.remove(metric.getFailureMessage(), "\n");
+        content.append(message).append(",");
         content.append(metric.getBytes()).append(",");
         content.append(metric.getSentBytes()).append(",");
         content.append(metric.getGrpThreads()).append(",");
