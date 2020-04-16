@@ -65,6 +65,7 @@ public class Consumer {
                         save();
                     }
                 } catch (Exception e) {
+                    LogUtil.error("handle queue error: ", e);
                 }
             }
         }).start();
@@ -83,6 +84,7 @@ public class Consumer {
                     }
                     Thread.sleep(20 * 1000);
                 } catch (Exception e) {
+                    LogUtil.error("handle save error: ", e);
                 }
             }
         }).start();
