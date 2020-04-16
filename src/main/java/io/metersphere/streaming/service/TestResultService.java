@@ -72,12 +72,12 @@ public class TestResultService {
         content.append(metric.getSampleLabel()).append(",");
         content.append(metric.getResponseCode()).append(",");
         // response message
-        content.append("null").append(",");
+        content.append(",");
         content.append(metric.getThreadName()).append(",");
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
         // failure message contains \n
-        String message = StringUtils.remove(metric.getFailureMessage(), "\n");
+        String message = convertFailureMessage(metric);
         content.append(message).append(",");
         content.append(metric.getBytes()).append(",");
         content.append(metric.getSentBytes()).append(",");
@@ -93,6 +93,12 @@ public class TestResultService {
         content.append(metric.getIdleTime()).append(",");
         content.append(metric.getConnectTime()).append("\n");
         return content.toString();
+    }
+
+    private String convertFailureMessage(Metric metric) {
+        String message = StringUtils.remove(metric.getFailureMessage(), "\n");
+        message = StringUtils.replace(message, ",", " ");
+        return message;
     }
 
     private int getElapsed(Date end) {
