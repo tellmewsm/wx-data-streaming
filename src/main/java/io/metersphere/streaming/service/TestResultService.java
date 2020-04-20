@@ -3,7 +3,6 @@ package io.metersphere.streaming.service;
 import io.metersphere.streaming.base.domain.LoadTestReportWithBLOBs;
 import io.metersphere.streaming.base.domain.LoadTestWithBLOBs;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
-import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportDetailMapper;
@@ -17,6 +16,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class TestResultService {
@@ -29,9 +30,9 @@ public class TestResultService {
     @Resource
     private ExtLoadTestMapper extLoadTestMapper;
     @Resource
-    private LoadTestReportDetailMapper loadTestReportDetailMapper;
-    @Resource
     private ExtLoadTestReportDetailMapper extLoadTestReportDetailMapper;
+
+    ExecutorService executorService = Executors.newFixedThreadPool(20);
 
     public void save(Metric metric) {
         // 如果 testid 为空，无法关联到test，此条消息作废
@@ -42,8 +43,9 @@ public class TestResultService {
             LogUtil.warn("ReportId is null");
             return;
         }
-        extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric), TestStatus.Running.name());
-        extLoadTestMapper.updateStatus(metric.getTestId(), TestStatus.Running.name());
+        extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric));
+        extLoadTestReportMapper.updateStatus(metric.getReportId(), TestStatus.Running.name(), TestStatus.Starting.name());
+        extLoadTestMapper.updateStatus(metric.getTestId(), TestStatus.Running.name(), TestStatus.Starting.name());
     }
 
     public void saveDetail(Metric metric) {
@@ -122,5 +124,10 @@ public class TestResultService {
         loadTest.setStatus(TestStatus.Completed.name());
         loadTestMapper.updateByPrimaryKeySelective(loadTest);
         LogUtil.info("test completed: " + metric.getTestName());
+
+        // TODO 结束测试，生成报告
+        executorService.execute(() -> {
+            LogUtil.info("TODO 处理CSV文件，生成报告");
+        });
     }
 }

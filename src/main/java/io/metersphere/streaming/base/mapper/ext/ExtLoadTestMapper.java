@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExtLoadTestMapper {
     @Update({"UPDATE load_test ",
-            "SET status = #{status} ",
-            "WHERE id = #{id}"})
-    int updateStatus(@Param("id") String id, @Param("status") String status);
+            "SET status = #{nextStatus} ",
+            "WHERE id = #{id} AND status = #{prevStatus}"})
+    int updateStatus(@Param("id") String id, @Param("nextStatus") String nextStatus, @Param("prevStatus") String prevStatus);
 }
