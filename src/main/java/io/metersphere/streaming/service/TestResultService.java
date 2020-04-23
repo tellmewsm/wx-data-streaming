@@ -140,6 +140,7 @@ public class TestResultService {
     public void generateReport(String reportId) {
         LoadTestReportDetail loadTestReportDetail = loadTestReportDetailMapper.selectByPrimaryKey(reportId);
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
+        LogUtil.info("report generators size: {}", reportGenerators.size());
         CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
         reportGenerators.forEach(r -> executorService.execute(() -> {
             r.init(reportId, loadTestReportDetail.getContent());
