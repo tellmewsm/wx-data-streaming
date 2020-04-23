@@ -25,7 +25,6 @@ public abstract class AbstractReport implements Report {
     }
 
     public void saveResult(String reportId, Object content) {
-        // todo 保存json
         LoadTestReportResult record = new LoadTestReportResult();
         record.setReportId(reportId);
         record.setReportKey(getReportKey());
@@ -35,6 +34,6 @@ public abstract class AbstractReport implements Report {
             LogUtil.error(e);
         }
         testResultSaveService.saveResult(record);
-        LogUtil.info("生成报告: {}, reportId: {}", getReportKey(), reportId);
+        LogUtil.info("Report generate success: {}, reportId: {}", getReportKey(), reportId);
     }
 }

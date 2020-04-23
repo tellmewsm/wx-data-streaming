@@ -71,6 +71,11 @@
             <artifactId>commons-collections4</artifactId>
             <version>4.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.12</version>
+        </dependency>
         <!-- jmeter -->
         <dependency>
             <groupId>org.apache.jmeter</groupId>
