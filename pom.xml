@@ -15,7 +15,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-
+        <jmeter.version>5.2.1</jmeter.version>
     </properties>
 
     <dependencies>
@@ -70,6 +70,12 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>4.1</version>
+        </dependency>
+        <!-- jmeter -->
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_core</artifactId>
+            <version>${jmeter.version}</version>
         </dependency>
     </dependencies>
 

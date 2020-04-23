@@ -1,8 +1,10 @@
 package io.metersphere.streaming.service;
 
+import io.metersphere.streaming.base.domain.LoadTestReportDetail;
 import io.metersphere.streaming.base.domain.LoadTestReportWithBLOBs;
 import io.metersphere.streaming.base.domain.LoadTestWithBLOBs;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
+import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportDetailMapper;
@@ -10,12 +12,16 @@ import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Metric;
+import io.metersphere.streaming.report.ReportGeneratorFactory;
+import io.metersphere.streaming.report.impl.AbstractReport;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,6 +33,8 @@ public class TestResultService {
     private ExtLoadTestReportMapper extLoadTestReportMapper;
     @Resource
     private LoadTestMapper loadTestMapper;
+    @Resource
+    private LoadTestReportDetailMapper loadTestReportDetailMapper;
     @Resource
     private ExtLoadTestMapper extLoadTestMapper;
     @Resource
@@ -116,18 +124,45 @@ public class TestResultService {
         LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
         LogUtil.info("test tearDown message received, report:{}, test:{} ", report.getId(), report.getTestId());
         report.setUpdateTime(System.currentTimeMillis());
-        report.setStatus(TestStatus.Completed.name());
+        report.setStatus(TestStatus.Reporting.name());
         loadTestReportMapper.updateByPrimaryKeySelective(report);
         // 更新测试的状态
         LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
         loadTest.setId(metric.getTestId());
-        loadTest.setStatus(TestStatus.Completed.name());
+        loadTest.setStatus(TestStatus.Reporting.name());
         loadTestMapper.updateByPrimaryKeySelective(loadTest);
-        LogUtil.info("test completed: " + metric.getTestName());
+        LogUtil.info("test reporting: " + metric.getTestName());
 
         // TODO 结束测试，生成报告
-        executorService.execute(() -> {
-            LogUtil.info("TODO 处理CSV文件，生成报告");
-        });
+        generateReport(metric.getReportId());
+    }
+
+    public void generateReport(String reportId) {
+        LoadTestReportDetail loadTestReportDetail = loadTestReportDetailMapper.selectByPrimaryKey(reportId);
+        List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
+        CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
+        reportGenerators.forEach(r -> executorService.execute(() -> {
+            r.init(reportId, loadTestReportDetail.getContent());
+            try {
+                r.execute();
+            } finally {
+                countDownLatch.countDown();
+            }
+        }));
+        try {
+            countDownLatch.await();
+            LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(reportId);
+            report.setUpdateTime(System.currentTimeMillis());
+            report.setStatus(TestStatus.Completed.name());
+            loadTestReportMapper.updateByPrimaryKeySelective(report);
+            // 更新测试的状态
+            LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
+            loadTest.setId(report.getTestId());
+            loadTest.setStatus(TestStatus.Completed.name());
+            loadTestMapper.updateByPrimaryKeySelective(loadTest);
+            LogUtil.info("test completed: " + report.getTestId());
+        } catch (InterruptedException e) {
+            LogUtil.error(e);
+        }
     }
 }
