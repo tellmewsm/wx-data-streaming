@@ -61,7 +61,6 @@ public class Consumer {
                     // 长度达到 queue_size save 一次
                     int size = metrics.size();
                     if (size >= QUEUE_SIZE) {
-                        LogUtil.info("save metrics size: " + size);
                         save();
                     }
                 } catch (Exception e) {
@@ -79,7 +78,6 @@ public class Consumer {
                     // 确保 metrics 全部被保存
                     int size = metrics.size();
                     if (metricQueue.isEmpty() && size > 0 && size < QUEUE_SIZE) {
-                        LogUtil.info("save metrics size: " + size);
                         save();
                     }
                     Thread.sleep(20 * 1000);
@@ -92,6 +90,7 @@ public class Consumer {
 
 
     public synchronized void save() {
+        LogUtil.info("save metrics size: " + metrics.size());
         Map<String, List<Metric>> reportMetrics = metrics.stream().collect(Collectors.groupingBy(Metric::getReportId));
         reportMetrics.forEach((r, ms) -> {
             Map<String, List<Metric>> rMetrics = ms.stream().collect(Collectors.groupingBy(this::fetchGroupKey));
