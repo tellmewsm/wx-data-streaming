@@ -1,16 +1,12 @@
 package io.metersphere.streaming.report.base;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class SummaryData {
 
     private List<Object> result;
 
-    public List<Object> getResult() {
-        return result;
-    }
-
-    public void setResult(List<Object> result) {
-        this.result = result;
-    }
 }
