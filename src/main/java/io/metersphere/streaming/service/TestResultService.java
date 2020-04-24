@@ -40,7 +40,8 @@ public class TestResultService {
     @Resource
     private ExtLoadTestReportDetailMapper extLoadTestReportDetailMapper;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(20);
+    ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
+    ExecutorService reportThreadPool = Executors.newFixedThreadPool(30);
 
     public void save(Metric metric) {
         // 如果 testid 为空，无法关联到test，此条消息作废
@@ -134,7 +135,9 @@ public class TestResultService {
         LogUtil.info("test reporting: " + metric.getTestName());
 
         // TODO 结束测试，生成报告
-        generateReport(metric.getReportId());
+        completeThreadPool.execute(() -> {
+            generateReport(metric.getReportId());
+        });
     }
 
     public void generateReport(String reportId) {
@@ -142,7 +145,7 @@ public class TestResultService {
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
         LogUtil.info("report generators size: {}", reportGenerators.size());
         CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
-        reportGenerators.forEach(r -> executorService.execute(() -> {
+        reportGenerators.forEach(r -> reportThreadPool.execute(() -> {
             r.init(reportId, loadTestReportDetail.getContent());
             try {
                 r.execute();
