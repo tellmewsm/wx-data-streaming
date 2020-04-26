@@ -2,6 +2,7 @@ package io.metersphere.streaming.report.parse;
 
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
 import io.metersphere.streaming.report.base.ChartsData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.report.core.Sample;
 import org.apache.jmeter.report.core.SampleMetadata;
 import org.apache.jmeter.report.dashboard.JsonizerVisitor;
@@ -62,7 +63,7 @@ public class ResultDataParse {
         return list;
     }
 
-    public static List<ChartsData> graphMapParsing(Map<String, Object> map, String seriesName) {
+    public static List<ChartsData> graphMapParsing(Map<String, Object> map, String seriesName, String yAxis) {
         List<ChartsData> list = new ArrayList<>();
         // ThreadGroup
         for (String key : map.keySet()) {
@@ -92,7 +93,13 @@ public class ResultDataParse {
                                 e.printStackTrace();
                             }
                             chartsData.setxAxis(time);
-                            chartsData.setyAxis(new BigDecimal(split[1].trim()));
+                            if (StringUtils.equals("yAxis2", yAxis)) {
+                                chartsData.setyAxis2(new BigDecimal(split[1].trim()));
+                                chartsData.setyAxis(new BigDecimal(-1));
+                            } else {
+                                chartsData.setyAxis(new BigDecimal(split[1].trim()));
+                                chartsData.setyAxis2(new BigDecimal(-1));
+                            }
                             if (series.getSize() == 1) {
                                 chartsData.setGroupName(seriesName);
                             } else {

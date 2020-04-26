@@ -29,13 +29,13 @@ public class OverviewReport extends AbstractReport {
         DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
         Map<String, Object> activeDataMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
-        List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap, "users");
+        List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap, "users", "yAxis");
         Optional<ChartsData> max = usersList.stream().max(Comparator.comparing(ChartsData::getyAxis));
         int maxUser = max.get().getyAxis().setScale(0, BigDecimal.ROUND_UP).intValue();
 
         Map<String, Object> hitsDataMap = ResultDataParse.getGraphDataMap(content, new HitsPerSecondGraphConsumer());
-        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsDataMap, "hits");
-        double hits = hitsList.stream().map(ChartsData::getyAxis)
+        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsDataMap, "hits", "yAxis2");
+        double hits = hitsList.stream().map(ChartsData::getyAxis2)
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);
 
@@ -46,8 +46,8 @@ public class OverviewReport extends AbstractReport {
         double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived())).mapToDouble(Double::doubleValue).average().orElse(0);
 
         Map<String, Object> responseDataMap = ResultDataParse.getGraphDataMap(content, new ResponseTimeOverTimeGraphConsumer());
-        List<ChartsData> responseDataList = ResultDataParse.graphMapParsing(responseDataMap, "response");
-        double responseTime = responseDataList.stream().map(ChartsData::getyAxis)
+        List<ChartsData> responseDataList = ResultDataParse.graphMapParsing(responseDataMap, "response", "yAxis2");
+        double responseTime = responseDataList.stream().map(ChartsData::getyAxis2)
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);
 
