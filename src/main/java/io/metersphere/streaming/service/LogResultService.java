@@ -13,9 +13,11 @@ public class LogResultService {
     private ExtLoadTestReportLogMapper extLoadTestReportLogMapper;
 
     public void save(String value) {
-        String id = StringUtils.substringBefore(value, SEPARATOR);
+        String reportId = StringUtils.substringBefore(value, SEPARATOR);
         String content = StringUtils.substringAfter(value, SEPARATOR);
+        String resourceId = StringUtils.substringBefore(content, SEPARATOR);
+        content = StringUtils.substringAfter(content, SEPARATOR);
         content = StringUtils.appendIfMissing(content, "\n");
-        extLoadTestReportLogMapper.appendLine(id, content);
+        extLoadTestReportLogMapper.appendLine(reportId, resourceId, content);
     }
 }

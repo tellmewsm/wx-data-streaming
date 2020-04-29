@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface ExtLoadTestReportLogMapper {
     @Update({"UPDATE load_test_report_log ",
             "SET content = concat(content, #{line}) ",
-            "WHERE report_id = #{id}"})
-    int appendLine(@Param("id") String id, @Param("line") String line);
+            "WHERE report_id = #{reportId} AND resource_id = #{resourceId}"})
+    int appendLine(@Param("reportId") String reportId, @Param("resourceId") String resourceId, @Param("line") String line);
 }
