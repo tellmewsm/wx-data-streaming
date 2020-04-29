@@ -15,7 +15,7 @@ public class LogResultService {
     public void save(String value) {
         String id = StringUtils.substringBefore(value, SEPARATOR);
         String content = StringUtils.substringAfter(value, SEPARATOR);
-        StringUtils.appendIfMissing(content, "\n");
+        content = StringUtils.appendIfMissing(content, "\n");
         extLoadTestReportLogMapper.appendLine(id, content);
     }
 }
