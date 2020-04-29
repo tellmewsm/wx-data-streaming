@@ -13,14 +13,24 @@ public class KafkaConfig {
 
     @Value("${kafka.topic}")
     private String topic;
+    @Value("${kafka.log.topic}")
+    private String logTopic;
     @Value("${kafka.partitions:1}")
     private Integer partitions;
     @Value("${kafka.replicas:1}")
     private Integer replicas;
 
     @Bean
-    public NewTopic topic() {
+    public NewTopic dataTopic() {
         return TopicBuilder.name(topic)
+                .partitions(partitions)
+                .replicas(replicas)
+                .build();
+    }
+
+    @Bean
+    public NewTopic logTopic() {
+        return TopicBuilder.name(logTopic)
                 .partitions(partitions)
                 .replicas(replicas)
                 .build();

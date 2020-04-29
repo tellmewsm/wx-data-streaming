@@ -21,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Service
-public class Consumer {
+public class DataConsumer {
     public static final String CONSUME_ID = "metric-data";
     public static final Integer QUEUE_SIZE = 1000;
     @Resource
