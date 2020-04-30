@@ -8,7 +8,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
-@PropertySource("file:/opt/metersphere/conf/metersphere.properties")
 public class KafkaConfig {
 
     @Value("${kafka.topic}")

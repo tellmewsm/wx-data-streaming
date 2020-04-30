@@ -15,7 +15,6 @@ import java.util.List;
 @Configuration
 @MapperScan(basePackages = "io.metersphere.streaming.base.mapper")
 @EnableTransactionManagement
-@PropertySource(value = {"file:/opt/fit2cloud/conf/metersphere.properties"}, encoding = "UTF-8", ignoreResourceNotFound = true)
 public class MybatisConfig {
 
     @Bean
