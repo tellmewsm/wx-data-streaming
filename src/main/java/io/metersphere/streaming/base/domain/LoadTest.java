@@ -14,8 +14,6 @@ public class LoadTest implements Serializable {
 
     private String description;
 
-    private String scenarioDefinition;
-
     private Long createTime;
 
     private Long updateTime;
