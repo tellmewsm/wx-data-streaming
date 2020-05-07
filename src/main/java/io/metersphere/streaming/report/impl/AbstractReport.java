@@ -8,6 +8,8 @@ import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.report.Report;
 import io.metersphere.streaming.service.TestResultSaveService;
 
+import java.util.UUID;
+
 public abstract class AbstractReport implements Report {
 
     protected String reportId;
@@ -26,6 +28,7 @@ public abstract class AbstractReport implements Report {
 
     public void saveResult(String reportId, Object content) {
         LoadTestReportResult record = new LoadTestReportResult();
+        record.setId(UUID.randomUUID().toString());
         record.setReportId(reportId);
         record.setReportKey(getReportKey());
         try {
