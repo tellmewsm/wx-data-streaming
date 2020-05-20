@@ -99,6 +99,7 @@ public class LogConsumer {
             }
             logResultService.savePartContent(reportId, resourceId, content.toString());
         });
+        logs.clear();
     }
 
     private String fetchGroupKey(Log log) {
