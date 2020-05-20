@@ -107,7 +107,10 @@ public class TestResultService {
 
     public void completeReport(Metric metric) {
         LoadTestReport report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
-        LogUtil.info("test tearDown message received, report:{}, test:{} ", report.getId(), report.getTestId());
+        if (report == null) {
+            LogUtil.info("Report is null.");
+            return;
+        }
         report.setUpdateTime(System.currentTimeMillis());
         report.setStatus(TestStatus.Reporting.name());
         loadTestReportMapper.updateByPrimaryKeySelective(report);
