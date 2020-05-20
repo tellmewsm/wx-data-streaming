@@ -1,23 +1,26 @@
 package io.metersphere.streaming.service;
 
-import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportLogMapper;
-import org.apache.commons.lang3.StringUtils;
+import io.metersphere.streaming.base.domain.LoadTestReportLog;
+import io.metersphere.streaming.base.domain.LoadTestReportLogExample;
+import io.metersphere.streaming.base.mapper.LoadTestReportLogMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 @Service
 public class LogResultService {
-    private static final String SEPARATOR = " ";
     @Resource
-    private ExtLoadTestReportLogMapper extLoadTestReportLogMapper;
+    private LoadTestReportLogMapper loadTestReportLogMapper;
 
-    public void save(String value) {
-        String reportId = StringUtils.substringBefore(value, SEPARATOR);
-        String content = StringUtils.substringAfter(value, SEPARATOR);
-        String resourceId = StringUtils.substringBefore(content, SEPARATOR);
-        content = StringUtils.substringAfter(content, SEPARATOR);
-        content = StringUtils.appendIfMissing(content, "\n");
-        extLoadTestReportLogMapper.appendLine(reportId, resourceId, content);
+
+    public void savePartContent(String reportId, String resourceId, String content) {
+        LoadTestReportLogExample example = new LoadTestReportLogExample();
+        example.createCriteria().andReportIdEqualTo(reportId).andResourceIdEqualTo(resourceId);
+        long part = loadTestReportLogMapper.countByExample(example);
+        LoadTestReportLog record = new LoadTestReportLog();
+        record.setReportId(reportId);
+        record.setPart(part + 1);
+        record.setContent(content);
+        loadTestReportLogMapper.insert(record);
     }
 }

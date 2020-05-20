@@ -36,7 +36,6 @@ public class DataConsumer {
     @KafkaListener(id = CONSUME_ID, topics = "${kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(ConsumerRecord<?, String> record) throws Exception {
         Metric metric = objectMapper.readValue(record.value(), Metric.class);
-//        testResultService.saveDetail(metric);
         if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
             // 收到结束信息时 save
             save();
