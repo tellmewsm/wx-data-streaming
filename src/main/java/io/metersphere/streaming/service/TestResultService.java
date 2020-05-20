@@ -1,13 +1,13 @@
 package io.metersphere.streaming.service;
 
+import io.metersphere.streaming.base.domain.LoadTestReport;
 import io.metersphere.streaming.base.domain.LoadTestReportDetail;
-import io.metersphere.streaming.base.domain.LoadTestReportWithBLOBs;
+import io.metersphere.streaming.base.domain.LoadTestReportDetailExample;
 import io.metersphere.streaming.base.domain.LoadTestWithBLOBs;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
-import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportDetailMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.LogUtil;
@@ -37,42 +37,26 @@ public class TestResultService {
     private LoadTestReportDetailMapper loadTestReportDetailMapper;
     @Resource
     private ExtLoadTestMapper extLoadTestMapper;
-    @Resource
-    private ExtLoadTestReportDetailMapper extLoadTestReportDetailMapper;
 
     ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
     ExecutorService reportThreadPool = Executors.newFixedThreadPool(30);
 
-    public void save(Metric metric) {
-        // 如果 testid 为空，无法关联到test，此条消息作废
-        if (StringUtils.isBlank(metric.getTestId())) {
-            return;
-        }
-        if (StringUtils.isBlank(metric.getReportId())) {
-            LogUtil.warn("ReportId is null");
-            return;
-        }
-        extLoadTestReportMapper.appendLine(metric.getReportId(), convertToLine(metric));
-        extLoadTestReportMapper.updateStatus(metric.getReportId(), TestStatus.Running.name(), TestStatus.Starting.name());
-        extLoadTestMapper.updateStatus(metric.getTestId(), TestStatus.Running.name(), TestStatus.Starting.name());
+    public void savePartContent(String reportId, String testId, String content) {
+        // 更新状态
+        extLoadTestReportMapper.updateStatus(reportId, TestStatus.Running.name(), TestStatus.Starting.name());
+        extLoadTestMapper.updateStatus(testId, TestStatus.Running.name(), TestStatus.Starting.name());
+
+        LoadTestReportDetailExample example = new LoadTestReportDetailExample();
+        example.createCriteria().andReportIdEqualTo(reportId);
+        long part = loadTestReportDetailMapper.countByExample(example);
+        LoadTestReportDetail record = new LoadTestReportDetail();
+        record.setReportId(reportId);
+        record.setPart(part + 1);
+        record.setContent(content);
+        loadTestReportDetailMapper.insert(record);
     }
 
-    public void saveDetail(Metric metric) {
-        // 如果 testid 为空，无法关联到test，此条消息作废
-        if (StringUtils.isBlank(metric.getTestId())) {
-            return;
-        }
-        if (StringUtils.isBlank(metric.getReportId())) {
-            LogUtil.warn("ReportId is null");
-            return;
-        }
-        if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
-            return;
-        }
-        extLoadTestReportDetailMapper.appendLine(metric.getReportId(), convertToLine(metric));
-    }
-
-    private String convertToLine(Metric metric) {
+    public String convertToLine(Metric metric) {
         //timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
         long start = metric.getTimestamp().getTime();
         Date end = metric.getElapsedTime();
@@ -122,7 +106,7 @@ public class TestResultService {
     }
 
     public void completeReport(Metric metric) {
-        LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
+        LoadTestReport report = loadTestReportMapper.selectByPrimaryKey(metric.getReportId());
         LogUtil.info("test tearDown message received, report:{}, test:{} ", report.getId(), report.getTestId());
         report.setUpdateTime(System.currentTimeMillis());
         report.setStatus(TestStatus.Reporting.name());
@@ -141,12 +125,16 @@ public class TestResultService {
     }
 
     public void generateReport(String reportId) {
-        LoadTestReportDetail loadTestReportDetail = loadTestReportDetailMapper.selectByPrimaryKey(reportId);
+        LoadTestReportDetailExample example = new LoadTestReportDetailExample();
+        example.createCriteria().andReportIdEqualTo(reportId);
+        example.setOrderByClause("part");
+        List<LoadTestReportDetail> loadTestReportDetails = loadTestReportDetailMapper.selectByExampleWithBLOBs(example);
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
         LogUtil.info("report generators size: {}", reportGenerators.size());
         CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
         reportGenerators.forEach(r -> reportThreadPool.execute(() -> {
-            r.init(reportId, loadTestReportDetail.getContent());
+            String content = loadTestReportDetails.stream().map(LoadTestReportDetail::getContent).reduce("", (a, b) -> a + b);
+            r.init(reportId, content);
             try {
                 r.execute();
             } finally {
@@ -155,7 +143,7 @@ public class TestResultService {
         }));
         try {
             countDownLatch.await();
-            LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(reportId);
+            LoadTestReport report = loadTestReportMapper.selectByPrimaryKey(reportId);
             report.setUpdateTime(System.currentTimeMillis());
             report.setStatus(TestStatus.Completed.name());
             loadTestReportMapper.updateByPrimaryKeySelective(report);
@@ -169,4 +157,5 @@ public class TestResultService {
             LogUtil.error(e);
         }
     }
+
 }

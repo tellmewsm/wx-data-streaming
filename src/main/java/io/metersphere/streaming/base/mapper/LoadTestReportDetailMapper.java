@@ -2,18 +2,17 @@ package io.metersphere.streaming.base.mapper;
 
 import io.metersphere.streaming.base.domain.LoadTestReportDetail;
 import io.metersphere.streaming.base.domain.LoadTestReportDetailExample;
-import org.apache.ibatis.annotations.Mapper;
+import io.metersphere.streaming.base.domain.LoadTestReportDetailKey;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-@Mapper
 public interface LoadTestReportDetailMapper {
     long countByExample(LoadTestReportDetailExample example);
 
     int deleteByExample(LoadTestReportDetailExample example);
 
-    int deleteByPrimaryKey(String reportId);
+    int deleteByPrimaryKey(LoadTestReportDetailKey key);
 
     int insert(LoadTestReportDetail record);
 
@@ -23,7 +22,7 @@ public interface LoadTestReportDetailMapper {
 
     List<LoadTestReportDetail> selectByExample(LoadTestReportDetailExample example);
 
-    LoadTestReportDetail selectByPrimaryKey(String reportId);
+    LoadTestReportDetail selectByPrimaryKey(LoadTestReportDetailKey key);
 
     int updateByExampleSelective(@Param("record") LoadTestReportDetail record, @Param("example") LoadTestReportDetailExample example);
 
