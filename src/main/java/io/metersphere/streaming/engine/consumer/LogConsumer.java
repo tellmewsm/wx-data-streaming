@@ -97,7 +97,12 @@ public class LogConsumer {
             for (Log log : logs) {
                 content.append(log.getContent());
             }
-            logResultService.savePartContent(reportId, resourceId, content.toString());
+            Log log = Log.builder()
+                    .reportId(reportId)
+                    .resourceId(resourceId)
+                    .content(content.toString())
+                    .build();
+            logResultService.savePartContent(log);
         });
         logs.clear();
     }
