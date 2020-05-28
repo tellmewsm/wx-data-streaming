@@ -115,25 +115,24 @@ public class ResultDataParse {
         return list;
     }
 
-    public static Map<String, Object> getGraphDataMap(String jtlString, AbstractOverTimeGraphConsumer timeGraphConsumer) {
-        AbstractOverTimeGraphConsumer abstractOverTimeGraphConsumer = timeGraphConsumer;
-        abstractOverTimeGraphConsumer.setGranularity(60000);
-        abstractOverTimeGraphConsumer.initialize();
-        SampleContext sampleContext = initJmeterConsumer(jtlString, abstractOverTimeGraphConsumer);
+    public static Map<String, Object> getGraphDataMap(List<String> jtlList, AbstractOverTimeGraphConsumer timeGraphConsumer) {
+        timeGraphConsumer.setGranularity(60000);
+        timeGraphConsumer.initialize();
+        SampleContext sampleContext = initJMeterConsumer(jtlList, timeGraphConsumer);
         return sampleContext.getData();
     }
 
-    public static Map<String, Object> getSummaryDataMap(String jtlString, AbstractSummaryConsumer<?> summaryConsumer) {
-        SampleContext sampleContext = initJmeterConsumer(jtlString, summaryConsumer);
+    public static Map<String, Object> getSummaryDataMap(List<String> jtlList, AbstractSummaryConsumer<?> summaryConsumer) {
+        SampleContext sampleContext = initJMeterConsumer(jtlList, summaryConsumer);
         return sampleContext.getData();
     }
 
-    public static Map<String, Object> getSampleDataMap(String jtlString, AbstractSampleConsumer sampleConsumer) {
-        SampleContext sampleContext = initJmeterConsumer(jtlString, sampleConsumer);
+    public static Map<String, Object> getSampleDataMap(List<String> jtlList, AbstractSampleConsumer sampleConsumer) {
+        SampleContext sampleContext = initJMeterConsumer(jtlList, sampleConsumer);
         return sampleContext.getData();
     }
 
-    private static SampleContext initJmeterConsumer(String jtlString, AbstractSampleConsumer abstractSampleConsumer) {
+    private static SampleContext initJMeterConsumer(List<String> jtlList, AbstractSampleConsumer abstractSampleConsumer) {
         int row = 0;
         // 使用反射获取properties
         MsJMeterUtils.loadJMeterProperties("jmeter.properties");
@@ -141,14 +140,26 @@ public class ResultDataParse {
         SampleContext sampleContext = new SampleContext();
         abstractSampleConsumer.setSampleContext(sampleContext);
         abstractSampleConsumer.startConsuming();
-        StringTokenizer tokenizer = new StringTokenizer(jtlString, "\n");
+
         // 去掉第一行
-        tokenizer.nextToken();
-        while (tokenizer.hasMoreTokens()) {
-            String line = tokenizer.nextToken();
-            String[] data = line.split(",", -1);
-            Sample sample = new Sample(row++, sampleMetaData, data);
-            abstractSampleConsumer.consume(sample, 0);
+//        tokenizer.nextToken();
+//        while (tokenizer.hasMoreTokens()) {
+//            String line = tokenizer.nextToken();
+//            String[] data = line.split(",", -1);
+//            Sample sample = new Sample(row++, sampleMetaData, data);
+//            abstractSampleConsumer.consume(sample, 0);
+//        }
+
+        for (int i = 0; i < jtlList.size(); i++) {
+            StringTokenizer tokenizer = new StringTokenizer(jtlList.get(i), "\n");
+            // 去掉第一行
+            if (i == 0) tokenizer.nextToken();
+            while (tokenizer.hasMoreTokens()) {
+                String line = tokenizer.nextToken();
+                String[] data = line.split(",", -1);
+                Sample sample = new Sample(row++, sampleMetaData, data);
+                abstractSampleConsumer.consume(sample, 0);
+            }
         }
         abstractSampleConsumer.stopConsuming();
         return sampleContext;

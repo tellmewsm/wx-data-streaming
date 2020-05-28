@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 public class TestResultService {
@@ -132,11 +133,12 @@ public class TestResultService {
         example.createCriteria().andReportIdEqualTo(reportId);
         example.setOrderByClause("part");
         List<LoadTestReportDetail> loadTestReportDetails = loadTestReportDetailMapper.selectByExampleWithBLOBs(example);
+        List<String> content = loadTestReportDetails.stream().map(LoadTestReportDetail::getContent).collect(Collectors.toList());
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
         LogUtil.info("report generators size: {}", reportGenerators.size());
         CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
         reportGenerators.forEach(r -> reportThreadPool.execute(() -> {
-            String content = loadTestReportDetails.stream().map(LoadTestReportDetail::getContent).reduce("", (a, b) -> a + b);
+            LogUtil.info("Report Key: " + r.getReportKey());
             r.init(reportId, content);
             try {
                 r.execute();
