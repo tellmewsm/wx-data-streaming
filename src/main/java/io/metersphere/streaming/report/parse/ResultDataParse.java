@@ -42,11 +42,11 @@ public class ResultDataParse {
                         T t = null;
                         for (int j = 0; j < size; j++) {
                             ValueResultData valueResultData = (ValueResultData) data.get(j);
-                            if (valueResultData.getValue() == null) {
+                            Object value = valueResultData.getValue();
+                            if (value == null) {
                                 strArray[j] = "";
                             } else {
-                                String accept = valueResultData.accept(new JsonizerVisitor());
-                                strArray[j] = accept.replace("\\", "");
+                                strArray[j] = value.toString();
                             }
                         }
 
