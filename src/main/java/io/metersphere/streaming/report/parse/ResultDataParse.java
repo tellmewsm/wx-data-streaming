@@ -141,15 +141,6 @@ public class ResultDataParse {
         abstractSampleConsumer.setSampleContext(sampleContext);
         abstractSampleConsumer.startConsuming();
 
-        // 去掉第一行
-//        tokenizer.nextToken();
-//        while (tokenizer.hasMoreTokens()) {
-//            String line = tokenizer.nextToken();
-//            String[] data = line.split(",", -1);
-//            Sample sample = new Sample(row++, sampleMetaData, data);
-//            abstractSampleConsumer.consume(sample, 0);
-//        }
-
         for (int i = 0; i < jtlList.size(); i++) {
             StringTokenizer tokenizer = new StringTokenizer(jtlList.get(i), "\n");
             // 去掉第一行

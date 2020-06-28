@@ -37,6 +37,8 @@ public class TestResultService {
     @Resource
     private LoadTestReportDetailMapper loadTestReportDetailMapper;
     @Resource
+    private TestResultSaveService testResultSaveService;
+    @Resource
     private ExtLoadTestMapper extLoadTestMapper;
 
     ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
@@ -55,6 +57,9 @@ public class TestResultService {
         record.setPart(part + 1);
         record.setContent(content);
         loadTestReportDetailMapper.insert(record);
+
+        // 计算结果
+        completeThreadPool.execute(() -> generateReport(reportId));
     }
 
     public String convertToLine(Metric metric) {
@@ -113,22 +118,25 @@ public class TestResultService {
             return;
         }
         report.setUpdateTime(System.currentTimeMillis());
-        report.setStatus(TestStatus.Reporting.name());
+        report.setStatus(TestStatus.Completed.name());
         loadTestReportMapper.updateByPrimaryKeySelective(report);
+
         // 更新测试的状态
         LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
-        loadTest.setId(metric.getTestId());
-        loadTest.setStatus(TestStatus.Reporting.name());
+        loadTest.setId(report.getTestId());
+        loadTest.setStatus(TestStatus.Completed.name());
         loadTestMapper.updateByPrimaryKeySelective(loadTest);
-        LogUtil.info("test reporting: " + metric.getTestName());
-
-        // TODO 结束测试，生成报告
-        completeThreadPool.execute(() -> {
-            generateReport(metric.getReportId());
-        });
+        LogUtil.info("test completed: " + report.getTestId());
     }
 
     public void generateReport(String reportId) {
+        // 检查 report_status
+        boolean reporting = testResultSaveService.isReporting(reportId);
+        if (!reporting) {
+            LogUtil.info("report generator is running by others.");
+            return;
+        }
+
         LoadTestReportDetailExample example = new LoadTestReportDetailExample();
         example.createCriteria().andReportIdEqualTo(reportId);
         example.setOrderByClause("part");
@@ -148,18 +156,10 @@ public class TestResultService {
         }));
         try {
             countDownLatch.await();
-            LoadTestReport report = loadTestReportMapper.selectByPrimaryKey(reportId);
-            report.setUpdateTime(System.currentTimeMillis());
-            report.setStatus(TestStatus.Completed.name());
-            loadTestReportMapper.updateByPrimaryKeySelective(report);
-            // 更新测试的状态
-            LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
-            loadTest.setId(report.getTestId());
-            loadTest.setStatus(TestStatus.Completed.name());
-            loadTestMapper.updateByPrimaryKeySelective(loadTest);
-            LogUtil.info("test completed: " + report.getTestId());
         } catch (InterruptedException e) {
             LogUtil.error(e);
+        } finally {
+            testResultSaveService.saveReportReadyStatus(reportId);
         }
     }
 
