@@ -5,7 +5,7 @@ import io.metersphere.streaming.report.base.ChartsData;
 import io.metersphere.streaming.report.base.Statistics;
 import io.metersphere.streaming.report.base.TestOverview;
 import io.metersphere.streaming.report.parse.ResultDataParse;
-import org.apache.jmeter.report.processor.StatisticsSummaryConsumer;
+import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
@@ -41,7 +41,6 @@ public class OverviewReport extends AbstractReport {
 
         Map<String, Object> errorDataMap = ResultDataParse.getSummaryDataMap(content, new StatisticsSummaryConsumer());
         List<Statistics> statisticsList = ResultDataParse.summaryMapParsing(errorDataMap, Statistics.class);
-        Optional<Double> error = statisticsList.stream().map(item -> Double.parseDouble(item.getError())).reduce(Double::sum);
         double avgTp90 = statisticsList.stream().map(item -> Double.parseDouble(item.getTp90())).mapToDouble(Double::doubleValue).average().orElse(0);
         double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived())).mapToDouble(Double::doubleValue).average().orElse(0);
 
@@ -51,10 +50,18 @@ public class OverviewReport extends AbstractReport {
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);
 
+        Map<String, Object> sampleDataMap = ResultDataParse.getSampleDataMap(content, new RequestsSummaryConsumer());
+        String error = "";
+        for (String key : sampleDataMap.keySet()) {
+            MapResultData mapResultData = (MapResultData) sampleDataMap.get(key);
+            ResultData koPercent = mapResultData.getResult("KoPercent");
+            error = ((ValueResultData) koPercent).getValue().toString();
+        }
+
         TestOverview testOverview = new TestOverview();
         testOverview.setMaxUsers(String.valueOf(maxUser));
         testOverview.setAvgThroughput(decimalFormat.format(hits));
-        testOverview.setErrors(decimalFormat.format(error.get()));
+        testOverview.setErrors(error);
         testOverview.setAvgResponseTime(decimalFormat.format(responseTime / 1000));
         testOverview.setResponseTime90(decimalFormat.format(avgTp90 / 1000));
         testOverview.setAvgBandwidth(decimalFormat.format(avgBandwidth));
