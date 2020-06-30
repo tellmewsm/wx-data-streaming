@@ -61,7 +61,7 @@ public class OverviewReport extends AbstractReport {
         TestOverview testOverview = new TestOverview();
         testOverview.setMaxUsers(String.valueOf(maxUser));
         testOverview.setAvgThroughput(decimalFormat.format(hits));
-        testOverview.setErrors(decimalFormat.format(error));
+        testOverview.setErrors(decimalFormat.format(Double.valueOf(error)));
         testOverview.setAvgResponseTime(decimalFormat.format(responseTime / 1000));
         testOverview.setResponseTime90(decimalFormat.format(avgTp90 / 1000));
         testOverview.setAvgBandwidth(decimalFormat.format(avgBandwidth));
