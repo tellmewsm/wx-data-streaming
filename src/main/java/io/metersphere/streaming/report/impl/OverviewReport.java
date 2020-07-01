@@ -16,6 +16,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class OverviewReport extends AbstractReport {
 
@@ -30,8 +32,13 @@ public class OverviewReport extends AbstractReport {
 
         Map<String, Object> activeDataMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
         List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap, "users", "yAxis");
-        Optional<ChartsData> max = usersList.stream().max(Comparator.comparing(ChartsData::getyAxis));
-        int maxUser = max.get().getyAxis().setScale(0, BigDecimal.ROUND_UP).intValue();
+        Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getGroupName));
+        AtomicInteger maxUser = new AtomicInteger();
+        collect.forEach((k, cs) -> {
+            Optional<ChartsData> max = cs.stream().max(Comparator.comparing(ChartsData::getyAxis));
+            int i = max.get().getyAxis().setScale(0, BigDecimal.ROUND_UP).intValue();
+            maxUser.addAndGet(i);
+        });
 
         Map<String, Object> hitsDataMap = ResultDataParse.getGraphDataMap(content, new HitsPerSecondGraphConsumer());
         List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsDataMap, "hits", "yAxis2");
@@ -59,7 +66,7 @@ public class OverviewReport extends AbstractReport {
         }
 
         TestOverview testOverview = new TestOverview();
-        testOverview.setMaxUsers(String.valueOf(maxUser));
+        testOverview.setMaxUsers(String.valueOf(maxUser.get()));
         testOverview.setAvgThroughput(decimalFormat.format(hits));
         testOverview.setErrors(decimalFormat.format(Double.valueOf(error)));
         testOverview.setAvgResponseTime(decimalFormat.format(responseTime / 1000));
