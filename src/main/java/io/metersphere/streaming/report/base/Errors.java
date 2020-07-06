@@ -7,6 +7,6 @@ public class Errors {
 
     private String errorType;
     private String errorNumber;
-    private String precentOfErrors;
-    private String precentOfAllSamples;
+    private String percentOfErrors;
+    private String percentOfAllSamples;
 }

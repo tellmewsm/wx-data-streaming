@@ -2,6 +2,7 @@ package io.metersphere.streaming.report.parse;
 
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
 import io.metersphere.streaming.report.base.ChartsData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.report.core.Sample;
 import org.apache.jmeter.report.core.SampleMetadata;
 import org.apache.jmeter.report.dashboard.JsonizerVisitor;
@@ -41,11 +42,11 @@ public class ResultDataParse {
                         T t = null;
                         for (int j = 0; j < size; j++) {
                             ValueResultData valueResultData = (ValueResultData) data.get(j);
-                            if (valueResultData.getValue() == null) {
+                            Object value = valueResultData.getValue();
+                            if (value == null) {
                                 strArray[j] = "";
                             } else {
-                                String accept = valueResultData.accept(new JsonizerVisitor());
-                                strArray[j] = accept.replace("\\", "");
+                                strArray[j] = value.toString();
                             }
                         }
 
@@ -62,7 +63,7 @@ public class ResultDataParse {
         return list;
     }
 
-    public static List<ChartsData> graphMapParsing(Map<String, Object> map, String seriesName) {
+    public static List<ChartsData> graphMapParsing(Map<String, Object> map, String seriesName, String yAxis) {
         List<ChartsData> list = new ArrayList<>();
         // ThreadGroup
         for (String key : map.keySet()) {
@@ -92,7 +93,13 @@ public class ResultDataParse {
                                 e.printStackTrace();
                             }
                             chartsData.setxAxis(time);
-                            chartsData.setyAxis(new BigDecimal(split[1].trim()));
+                            if (StringUtils.equals("yAxis2", yAxis)) {
+                                chartsData.setyAxis2(new BigDecimal(split[1].trim()));
+                                chartsData.setyAxis(new BigDecimal(-1));
+                            } else {
+                                chartsData.setyAxis(new BigDecimal(split[1].trim()));
+                                chartsData.setyAxis2(new BigDecimal(-1));
+                            }
                             if (series.getSize() == 1) {
                                 chartsData.setGroupName(seriesName);
                             } else {
@@ -108,25 +115,24 @@ public class ResultDataParse {
         return list;
     }
 
-    public static Map<String, Object> getGraphDataMap(String jtlString, AbstractOverTimeGraphConsumer timeGraphConsumer) {
-        AbstractOverTimeGraphConsumer abstractOverTimeGraphConsumer = timeGraphConsumer;
-        abstractOverTimeGraphConsumer.setGranularity(60000);
-        abstractOverTimeGraphConsumer.initialize();
-        SampleContext sampleContext = initJmeterConsumer(jtlString, abstractOverTimeGraphConsumer);
+    public static Map<String, Object> getGraphDataMap(List<String> jtlList, AbstractOverTimeGraphConsumer timeGraphConsumer) {
+        timeGraphConsumer.setGranularity(60000);
+        timeGraphConsumer.initialize();
+        SampleContext sampleContext = initJMeterConsumer(jtlList, timeGraphConsumer);
         return sampleContext.getData();
     }
 
-    public static Map<String, Object> getSummaryDataMap(String jtlString, AbstractSummaryConsumer<?> summaryConsumer) {
-        SampleContext sampleContext = initJmeterConsumer(jtlString, summaryConsumer);
+    public static Map<String, Object> getSummaryDataMap(List<String> jtlList, AbstractSummaryConsumer<?> summaryConsumer) {
+        SampleContext sampleContext = initJMeterConsumer(jtlList, summaryConsumer);
         return sampleContext.getData();
     }
 
-    public static Map<String, Object> getSampleDataMap(String jtlString, AbstractSampleConsumer sampleConsumer) {
-        SampleContext sampleContext = initJmeterConsumer(jtlString, sampleConsumer);
+    public static Map<String, Object> getSampleDataMap(List<String> jtlList, AbstractSampleConsumer sampleConsumer) {
+        SampleContext sampleContext = initJMeterConsumer(jtlList, sampleConsumer);
         return sampleContext.getData();
     }
 
-    private static SampleContext initJmeterConsumer(String jtlString, AbstractSampleConsumer abstractSampleConsumer) {
+    private static SampleContext initJMeterConsumer(List<String> jtlList, AbstractSampleConsumer abstractSampleConsumer) {
         int row = 0;
         // 使用反射获取properties
         MsJMeterUtils.loadJMeterProperties("jmeter.properties");
@@ -134,14 +140,17 @@ public class ResultDataParse {
         SampleContext sampleContext = new SampleContext();
         abstractSampleConsumer.setSampleContext(sampleContext);
         abstractSampleConsumer.startConsuming();
-        StringTokenizer tokenizer = new StringTokenizer(jtlString, "\n");
-        // 去掉第一行
-        tokenizer.nextToken();
-        while (tokenizer.hasMoreTokens()) {
-            String line = tokenizer.nextToken();
-            String[] data = line.split(",", -1);
-            Sample sample = new Sample(row++, sampleMetaData, data);
-            abstractSampleConsumer.consume(sample, 0);
+
+        for (int i = 0; i < jtlList.size(); i++) {
+            StringTokenizer tokenizer = new StringTokenizer(jtlList.get(i), "\n");
+            // 去掉第一行
+            if (i == 0) tokenizer.nextToken();
+            while (tokenizer.hasMoreTokens()) {
+                String line = tokenizer.nextToken();
+                String[] data = line.split(",", -1);
+                Sample sample = new Sample(row++, sampleMetaData, data);
+                abstractSampleConsumer.consume(sample, 0);
+            }
         }
         abstractSampleConsumer.stopConsuming();
         return sampleContext;
@@ -149,8 +158,7 @@ public class ResultDataParse {
 
     // Create a static SampleMetadataObject
     private static SampleMetadata createTestMetaData() {
-        String columnsString = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
-        columnsString = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
+        String columnsString = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
 
         String[] columns = new String[17];
         int lastComa = 0;

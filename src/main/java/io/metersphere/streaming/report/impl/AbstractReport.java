@@ -8,14 +8,17 @@ import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.report.Report;
 import io.metersphere.streaming.service.TestResultSaveService;
 
+import java.util.List;
+import java.util.UUID;
+
 public abstract class AbstractReport implements Report {
 
     protected String reportId;
-    protected String content;
+    protected List<String> content;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final TestResultSaveService testResultSaveService;
 
-    public void init(String reportId, String content) {
+    public void init(String reportId, List<String> content) {
         this.reportId = reportId;
         this.content = content;
     }
@@ -26,6 +29,7 @@ public abstract class AbstractReport implements Report {
 
     public void saveResult(String reportId, Object content) {
         LoadTestReportResult record = new LoadTestReportResult();
+        record.setId(UUID.randomUUID().toString());
         record.setReportId(reportId);
         record.setReportKey(getReportKey());
         try {

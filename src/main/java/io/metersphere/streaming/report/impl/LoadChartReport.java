@@ -16,8 +16,8 @@ public class LoadChartReport extends AbstractReport {
     public void execute() {
         Map<String, Object> activeThreadMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
         Map<String, Object> hitsMap = ResultDataParse.getGraphDataMap(content, new HitsPerSecondGraphConsumer());
-        List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap, "users");
-        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsMap, "hits");
+        List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap, "users", "yAxis");
+        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsMap, "hits", "yAxis2");
         resultList.addAll(hitsList);
 
         saveResult(reportId, resultList);

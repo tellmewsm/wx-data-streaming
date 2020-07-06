@@ -21,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Service
-public class Consumer {
+public class DataConsumer {
     public static final String CONSUME_ID = "metric-data";
     public static final Integer QUEUE_SIZE = 1000;
     @Resource
@@ -36,7 +36,6 @@ public class Consumer {
     @KafkaListener(id = CONSUME_ID, topics = "${kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(ConsumerRecord<?, String> record) throws Exception {
         Metric metric = objectMapper.readValue(record.value(), Metric.class);
-        testResultService.saveDetail(metric);
         if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
             // 收到结束信息时 save
             save();
@@ -92,17 +91,14 @@ public class Consumer {
     public synchronized void save() {
         LogUtil.info("save metrics size: " + metrics.size());
         Map<String, List<Metric>> reportMetrics = metrics.stream().collect(Collectors.groupingBy(Metric::getReportId));
-        reportMetrics.forEach((r, ms) -> {
-            Map<String, List<Metric>> rMetrics = ms.stream().collect(Collectors.groupingBy(this::fetchGroupKey));
-            rMetrics.forEach((s, m) -> {
-                int size = m.size();
-                if (size > 0) {
-                    m.sort((c1, c2) -> c2.getTimestamp().compareTo(c1.getTimestamp()));
-                    // 最后一个点
-                    Metric metric = m.get(0);
-                    testResultService.save(metric);
-                }
-            });
+        reportMetrics.forEach((reportId, metrics) -> {
+            String testId = "";
+            StringBuilder content = new StringBuilder();
+            for (Metric metric : metrics) {
+                content.append(testResultService.convertToLine(metric));
+                testId = metric.getTestId();
+            }
+            testResultService.savePartContent(reportId, testId, content.toString());
         });
         // 清空 list
         metrics.clear();
