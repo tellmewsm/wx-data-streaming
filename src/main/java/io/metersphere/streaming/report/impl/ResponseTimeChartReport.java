@@ -3,6 +3,7 @@ package io.metersphere.streaming.report.impl;
 import io.metersphere.streaming.commons.constants.ReportKeys;
 import io.metersphere.streaming.report.base.ChartsData;
 import io.metersphere.streaming.report.parse.ResultDataParse;
+import org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
 
 import java.util.List;
@@ -17,13 +18,12 @@ public class ResponseTimeChartReport extends AbstractReport {
 
     @Override
     public void execute() {
-        List<ChartsData> resultList = getUsersGraph();
-
+        Map<String, Object> activeThreadMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
         Map<String, Object> responseTimeMap = ResultDataParse.getGraphDataMap(content, new ResponseTimeOverTimeGraphConsumer());
+        List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap, "users", "yAxis");
         List<ChartsData> responseTimeList = ResultDataParse.graphMapParsing(responseTimeMap, "responseTime", "yAxis2");
         resultList.addAll(responseTimeList);
 
         saveResult(reportId, resultList);
     }
-
 }

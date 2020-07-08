@@ -6,6 +6,7 @@ import io.metersphere.streaming.report.base.Statistics;
 import io.metersphere.streaming.report.base.TestOverview;
 import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.jmeter.report.processor.*;
+import org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
 
@@ -29,7 +30,8 @@ public class OverviewReport extends AbstractReport {
     public void execute() {
         DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
-        List<ChartsData> usersList = getUsersGraph();
+        Map<String, Object> activeDataMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
+        List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap, "users", "yAxis");
         Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getGroupName));
         AtomicInteger maxUser = new AtomicInteger();
         collect.forEach((k, cs) -> {
