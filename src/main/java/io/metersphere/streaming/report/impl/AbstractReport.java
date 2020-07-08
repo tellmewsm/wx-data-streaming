@@ -8,6 +8,7 @@ import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.report.Report;
 import io.metersphere.streaming.service.TestResultSaveService;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ public abstract class AbstractReport implements Report {
     protected List<String> content;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final TestResultSaveService testResultSaveService;
+    protected DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
     public void init(String reportId, List<String> content) {
         this.reportId = reportId;

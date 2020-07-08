@@ -127,16 +127,23 @@ public class TestResultService {
         loadTest.setStatus(TestStatus.Completed.name());
         loadTestMapper.updateByPrimaryKeySelective(loadTest);
         LogUtil.info("test completed: " + report.getTestId());
+
+        // 确保计算报告完全执行
+        generateReport(report.getId(), true);
     }
 
     public void generateReport(String reportId) {
         // 检查 report_status
         boolean reporting = testResultSaveService.isReporting(reportId);
-        if (!reporting) {
-            LogUtil.info("report generator is running by others.");
+
+        generateReport(reportId, reporting);
+    }
+
+    private void generateReport(String reportId, boolean isForce) {
+        if (!isForce) {
+            LogUtil.info("report generator is running.");
             return;
         }
-
         LoadTestReportDetailExample example = new LoadTestReportDetailExample();
         example.createCriteria().andReportIdEqualTo(reportId);
         example.setOrderByClause("part");

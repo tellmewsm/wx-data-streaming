@@ -11,7 +11,6 @@ import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ public class OverviewReport extends AbstractReport {
 
     @Override
     public void execute() {
-        DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
         Map<String, Object> activeDataMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
         List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap, "users", "yAxis");
