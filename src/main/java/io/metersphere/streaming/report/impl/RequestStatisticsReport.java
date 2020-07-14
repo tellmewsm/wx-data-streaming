@@ -30,6 +30,7 @@ public class RequestStatisticsReport extends AbstractReport {
             statistic.setTransactions(decimalFormat.format(new BigDecimal(statistic.getTransactions())));
             statistic.setReceived(decimalFormat.format(new BigDecimal(statistic.getReceived())));
             statistic.setSent(decimalFormat.format(new BigDecimal(statistic.getSent())));
+            statistic.setError(decimalFormat.format(new BigDecimal(statistic.getError())));
         });
 
         saveResult(reportId, statistics);
