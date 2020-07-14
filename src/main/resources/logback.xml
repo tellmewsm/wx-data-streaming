@@ -147,7 +147,6 @@
 
 	<logger name="io.metersphere.streaming" additivity="false">
 		<level value="${logging.level.root:INFO}" />
-		<appender-ref ref="debugAsyncAppender" />
 		<appender-ref ref="infoAsyncAppender" />
 		<appender-ref ref="warnAsyncAppender" />
 		<appender-ref ref="errorAsyncAppender" />
