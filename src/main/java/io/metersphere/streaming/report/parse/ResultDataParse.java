@@ -1,6 +1,8 @@
 package io.metersphere.streaming.report.parse;
 
+import io.metersphere.streaming.commons.utils.CommonBeanFactory;
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
+import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.report.base.ChartsData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.report.core.Sample;
@@ -116,7 +118,8 @@ public class ResultDataParse {
     }
 
     public static Map<String, Object> getGraphDataMap(List<String> jtlList, AbstractOverTimeGraphConsumer timeGraphConsumer) {
-        timeGraphConsumer.setGranularity(60000);
+        JmeterReportProperties jmeterReportProperties = CommonBeanFactory.getBean(JmeterReportProperties.class);
+        timeGraphConsumer.setGranularity(jmeterReportProperties.getGranularity());
         timeGraphConsumer.initialize();
         SampleContext sampleContext = initJMeterConsumer(jtlList, timeGraphConsumer);
         return sampleContext.getData();
