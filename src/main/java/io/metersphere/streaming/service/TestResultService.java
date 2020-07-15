@@ -18,8 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -65,11 +63,9 @@ public class TestResultService {
     public String convertToLine(Metric metric) {
         //timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
         long start = metric.getTimestamp().getTime();
-        Date end = metric.getElapsedTime();
         StringBuilder content = new StringBuilder();
         content.append(start).append(",");
-        int elapsed = getElapsed(end);
-        content.append(elapsed).append(",");
+        content.append(metric.getResponseTime()).append(",");
         content.append(metric.getSampleLabel()).append(",");
         content.append(metric.getResponseCode()).append(",");
         // response message
@@ -100,15 +96,6 @@ public class TestResultService {
         String message = StringUtils.remove(metric.getFailureMessage(), "\n");
         message = StringUtils.replace(message, ",", " ");
         return message;
-    }
-
-    private int getElapsed(Date end) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(end);
-        int hours = calendar.get(Calendar.HOUR_OF_DAY);
-        int minutes = calendar.get(Calendar.MINUTE);
-        int seconds = calendar.get(Calendar.SECOND);
-        return minutes * 60 + seconds;
     }
 
     public void completeReport(Metric metric) {
