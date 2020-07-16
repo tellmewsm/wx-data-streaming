@@ -11,6 +11,7 @@ import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,8 @@ public class OverviewReport extends AbstractReport {
     public String getReportKey() {
         return ReportKeys.Overview.name();
     }
+
+    private final DecimalFormat responseTimeFormat = new DecimalFormat("0.0000");
 
     @Override
     public void execute() {
@@ -67,8 +70,8 @@ public class OverviewReport extends AbstractReport {
         testOverview.setMaxUsers(String.valueOf(maxUser.get()));
         testOverview.setAvgThroughput(decimalFormat.format(hits));
         testOverview.setErrors(decimalFormat.format(Double.valueOf(error)));
-        testOverview.setAvgResponseTime(decimalFormat.format(responseTime / 1000));
-        testOverview.setResponseTime90(decimalFormat.format(avgTp90 / 1000));
+        testOverview.setAvgResponseTime(responseTimeFormat.format(responseTime / 1000));
+        testOverview.setResponseTime90(responseTimeFormat.format(avgTp90 / 1000));
         testOverview.setAvgBandwidth(decimalFormat.format(avgBandwidth));
 
         saveResult(reportId, testOverview);
