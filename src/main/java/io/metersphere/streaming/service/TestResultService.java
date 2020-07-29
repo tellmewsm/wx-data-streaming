@@ -104,9 +104,6 @@ public class TestResultService {
             LogUtil.info("Report is null.");
             return;
         }
-        report.setUpdateTime(System.currentTimeMillis());
-        report.setStatus(TestStatus.Completed.name());
-        loadTestReportMapper.updateByPrimaryKeySelective(report);
 
         // 更新测试的状态
         LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
@@ -116,17 +113,17 @@ public class TestResultService {
         LogUtil.info("test completed: " + report.getTestId());
 
         // 确保计算报告完全执行
-        generateReport(report.getId(), true);
+        generateReport(report.getId(), true, true);
     }
 
     public void generateReport(String reportId) {
         // 检查 report_status
         boolean reporting = testResultSaveService.isReporting(reportId);
 
-        generateReport(reportId, reporting);
+        generateReport(reportId, reporting, false);
     }
 
-    private void generateReport(String reportId, boolean isForce) {
+    private void generateReport(String reportId, boolean isForce, boolean isCompleted) {
         if (!isForce) {
             LogUtil.info("report generator is running.");
             return;
@@ -154,7 +151,21 @@ public class TestResultService {
             LogUtil.error(e);
         } finally {
             testResultSaveService.saveReportReadyStatus(reportId);
+            saveReportCompletedStatus(reportId, isCompleted);
         }
+    }
+
+    private void saveReportCompletedStatus(String reportId, boolean isCompleted) {
+        LoadTestReport report = new LoadTestReport();
+        report.setId(reportId);
+        report.setUpdateTime(System.currentTimeMillis());
+        // 测试结束后保存状态
+        if (isCompleted) {
+            report.setStatus(TestStatus.Completed.name());
+        } else {
+            report.setStatus(TestStatus.Reporting.name());
+        }
+        loadTestReportMapper.updateByPrimaryKeySelective(report);
     }
 
 }
