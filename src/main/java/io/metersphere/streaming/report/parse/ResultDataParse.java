@@ -1,7 +1,6 @@
 package io.metersphere.streaming.report.parse;
 
 import io.metersphere.streaming.base.domain.LoadTestReportDetail;
-import io.metersphere.streaming.base.domain.LoadTestReportDetailExample;
 import io.metersphere.streaming.commons.utils.CommonBeanFactory;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
@@ -151,25 +150,18 @@ public class ResultDataParse {
         SqlSessionFactory sqlSessionFactory = CommonBeanFactory.getBean(SqlSessionFactory.class);
         MyBatisCursorItemReader<LoadTestReportDetail> myBatisCursorItemReader = new MyBatisCursorItemReaderBuilder<LoadTestReportDetail>()
                 .sqlSessionFactory(sqlSessionFactory)
-                .queryId("io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper.selectByExampleWithBLOBs")
+                // 设置queryId
+                .queryId("io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper.fetchTestReportDetails")
                 .build();
         try {
-            LoadTestReportDetailExample example = new LoadTestReportDetailExample();
-            example.createCriteria().andReportIdEqualTo(reportId);
-            example.setOrderByClause("part");
             Map<String, Object> param = new HashMap<>();
-            param.put("oredCriteria", example.getOredCriteria());
+            param.put("reportId", reportId);
             myBatisCursorItemReader.setParameterValues(param);
             myBatisCursorItemReader.open(new ExecutionContext());
             LoadTestReportDetail loadTestReportDetail;
             while ((loadTestReportDetail = myBatisCursorItemReader.read()) != null) {
                 //
                 String content = loadTestReportDetail.getContent();
-                // 去掉第一行表头行
-                if (StringUtils.startsWithIgnoreCase(content, "timeStamp")) {
-                    continue;
-                }
-
                 StringTokenizer tokenizer = new StringTokenizer(content, "\n");
                 while (tokenizer.hasMoreTokens()) {
                     String line = tokenizer.nextToken();
