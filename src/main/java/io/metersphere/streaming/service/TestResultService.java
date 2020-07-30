@@ -137,7 +137,7 @@ public class TestResultService {
     private void generateReport(String reportId, boolean isForce) {
         if (!isForce) {
             LogUtil.info("report generator is running.");
-//            return;
+            return;
         }
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
         LogUtil.info("report generators size: {}", reportGenerators.size());
