@@ -30,4 +30,11 @@ public class TestResultSaveService {
     public void saveReportReadyStatus(String reportId) {
         extLoadTestReportResultMapper.updateReportStatus(reportId, ReportKeys.ResultStatus.name(), "Reporting", "Ready");
     }
+
+    public void saveReportCompletedStatus(String reportId) {
+        // 保存最终 为 completed
+        extLoadTestReportResultMapper.updateReportStatus(reportId, ReportKeys.ResultStatus.name(), "Reporting", "Completed");
+        extLoadTestReportResultMapper.updateReportStatus(reportId, ReportKeys.ResultStatus.name(), "Ready", "Completed");
+    }
+
 }

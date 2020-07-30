@@ -125,6 +125,8 @@ public class TestResultService {
     private void generateReportComplete(String reportId) {
         //
         generateReport(reportId, true); // 强制执行一次生成报告
+        // 标记结束
+        testResultSaveService.saveReportCompletedStatus(reportId);
 
         LoadTestReport report = new LoadTestReport();
         report.setId(reportId);
