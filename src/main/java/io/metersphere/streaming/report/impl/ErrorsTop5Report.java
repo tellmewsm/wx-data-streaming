@@ -17,7 +17,7 @@ public class ErrorsTop5Report extends AbstractReport {
 
     @Override
     public void execute() {
-        Map<String, Object> statisticsDataMap = ResultDataParse.getSummaryDataMap(content, new Top5ErrorsBySamplerConsumer());
+        Map<String, Object> statisticsDataMap = ResultDataParse.getSummaryDataMap(reportId, new Top5ErrorsBySamplerConsumer());
         List<ErrorsTop5> errorsTop5s = ResultDataParse.summaryMapParsing(statisticsDataMap, ErrorsTop5.class);
 
         saveResult(reportId, errorsTop5s);

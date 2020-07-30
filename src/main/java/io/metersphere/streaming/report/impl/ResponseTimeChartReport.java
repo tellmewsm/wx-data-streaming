@@ -18,8 +18,8 @@ public class ResponseTimeChartReport extends AbstractReport {
 
     @Override
     public void execute() {
-        Map<String, Object> activeThreadMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
-        Map<String, Object> responseTimeMap = ResultDataParse.getGraphDataMap(content, new ResponseTimeOverTimeGraphConsumer());
+        Map<String, Object> activeThreadMap = ResultDataParse.getGraphDataMap(reportId, new ActiveThreadsGraphConsumer());
+        Map<String, Object> responseTimeMap = ResultDataParse.getGraphDataMap(reportId, new ResponseTimeOverTimeGraphConsumer());
         List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap, "users", "yAxis");
         List<ChartsData> responseTimeList = ResultDataParse.graphMapParsing(responseTimeMap, "responseTime", "yAxis2");
         resultList.addAll(responseTimeList);

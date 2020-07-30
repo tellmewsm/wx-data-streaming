@@ -1,15 +1,22 @@
 package io.metersphere.streaming.report.parse;
 
+import io.metersphere.streaming.base.domain.LoadTestReportDetail;
+import io.metersphere.streaming.base.domain.LoadTestReportDetailExample;
 import io.metersphere.streaming.commons.utils.CommonBeanFactory;
+import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
 import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.report.base.ChartsData;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.jmeter.report.core.Sample;
 import org.apache.jmeter.report.core.SampleMetadata;
 import org.apache.jmeter.report.dashboard.JsonizerVisitor;
 import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.AbstractOverTimeGraphConsumer;
+import org.mybatis.spring.batch.MyBatisCursorItemReader;
+import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
+import org.springframework.batch.item.ExecutionContext;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -19,10 +26,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class ResultDataParse {
 
@@ -117,25 +121,25 @@ public class ResultDataParse {
         return list;
     }
 
-    public static Map<String, Object> getGraphDataMap(List<String> jtlList, AbstractOverTimeGraphConsumer timeGraphConsumer) {
+    public static Map<String, Object> getGraphDataMap(String reportId, AbstractOverTimeGraphConsumer timeGraphConsumer) {
         JmeterReportProperties jmeterReportProperties = CommonBeanFactory.getBean(JmeterReportProperties.class);
         timeGraphConsumer.setGranularity(jmeterReportProperties.getGranularity());
         timeGraphConsumer.initialize();
-        SampleContext sampleContext = initJMeterConsumer(jtlList, timeGraphConsumer);
+        SampleContext sampleContext = initJMeterConsumer(reportId, timeGraphConsumer);
         return sampleContext.getData();
     }
 
-    public static Map<String, Object> getSummaryDataMap(List<String> jtlList, AbstractSummaryConsumer<?> summaryConsumer) {
-        SampleContext sampleContext = initJMeterConsumer(jtlList, summaryConsumer);
+    public static Map<String, Object> getSummaryDataMap(String reportId, AbstractSummaryConsumer<?> summaryConsumer) {
+        SampleContext sampleContext = initJMeterConsumer(reportId, summaryConsumer);
         return sampleContext.getData();
     }
 
-    public static Map<String, Object> getSampleDataMap(List<String> jtlList, AbstractSampleConsumer sampleConsumer) {
-        SampleContext sampleContext = initJMeterConsumer(jtlList, sampleConsumer);
+    public static Map<String, Object> getSampleDataMap(String reportId, AbstractSampleConsumer sampleConsumer) {
+        SampleContext sampleContext = initJMeterConsumer(reportId, sampleConsumer);
         return sampleContext.getData();
     }
 
-    private static SampleContext initJMeterConsumer(List<String> jtlList, AbstractSampleConsumer abstractSampleConsumer) {
+    private static SampleContext initJMeterConsumer(String reportId, AbstractSampleConsumer abstractSampleConsumer) {
         int row = 0;
         // 使用反射获取properties
         MsJMeterUtils.loadJMeterProperties("jmeter.properties");
@@ -144,17 +148,42 @@ public class ResultDataParse {
         abstractSampleConsumer.setSampleContext(sampleContext);
         abstractSampleConsumer.startConsuming();
 
-        for (int i = 0; i < jtlList.size(); i++) {
-            StringTokenizer tokenizer = new StringTokenizer(jtlList.get(i), "\n");
-            // 去掉第一行
-            if (i == 0) tokenizer.nextToken();
-            while (tokenizer.hasMoreTokens()) {
-                String line = tokenizer.nextToken();
-                String[] data = line.split(",", -1);
-                Sample sample = new Sample(row++, sampleMetaData, data);
-                abstractSampleConsumer.consume(sample, 0);
+        SqlSessionFactory sqlSessionFactory = CommonBeanFactory.getBean(SqlSessionFactory.class);
+        MyBatisCursorItemReader<LoadTestReportDetail> myBatisCursorItemReader = new MyBatisCursorItemReaderBuilder<LoadTestReportDetail>()
+                .sqlSessionFactory(sqlSessionFactory)
+                .queryId("io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper.selectByExampleWithBLOBs")
+                .build();
+        try {
+            LoadTestReportDetailExample example = new LoadTestReportDetailExample();
+            example.createCriteria().andReportIdEqualTo(reportId);
+            example.setOrderByClause("part");
+            Map<String, Object> param = new HashMap<>();
+            param.put("oredCriteria", example.getOredCriteria());
+            myBatisCursorItemReader.setParameterValues(param);
+            myBatisCursorItemReader.open(new ExecutionContext());
+            LoadTestReportDetail loadTestReportDetail;
+            while ((loadTestReportDetail = myBatisCursorItemReader.read()) != null) {
+                //
+                String content = loadTestReportDetail.getContent();
+                // 去掉第一行表头行
+                if (StringUtils.startsWithIgnoreCase(content, "timeStamp")) {
+                    continue;
+                }
+
+                StringTokenizer tokenizer = new StringTokenizer(content, "\n");
+                while (tokenizer.hasMoreTokens()) {
+                    String line = tokenizer.nextToken();
+                    String[] data = line.split(",", -1);
+                    Sample sample = new Sample(row++, sampleMetaData, data);
+                    abstractSampleConsumer.consume(sample, 0);
+                }
             }
+        } catch (Exception e) {
+            LogUtil.error(e);
+        } finally {
+            myBatisCursorItemReader.close();
         }
+
         abstractSampleConsumer.stopConsuming();
         return sampleContext;
     }

@@ -33,7 +33,7 @@ public class TimeInfoReport extends AbstractReport {
         dateRangeConsumer.addSampleConsumer(createBeginDateConsumer());
         dateRangeConsumer.addSampleConsumer(createEndDateConsumer());
 
-        Map<String, Object> sampleDataMap = ResultDataParse.getSampleDataMap(content, dateRangeConsumer);
+        Map<String, Object> sampleDataMap = ResultDataParse.getSampleDataMap(reportId, dateRangeConsumer);
         ValueResultData beginDateResult = (ValueResultData) sampleDataMap.get(BEGIN_DATE_CONSUMER_NAME);
         ValueResultData endDateResult = (ValueResultData) sampleDataMap.get(END_DATE_CONSUMER_NAME);
         long startTimeStamp = ((Double) beginDateResult.getValue()).longValue();

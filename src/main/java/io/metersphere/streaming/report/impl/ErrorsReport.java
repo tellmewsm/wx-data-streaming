@@ -18,7 +18,7 @@ public class ErrorsReport extends AbstractReport {
 
     @Override
     public void execute() {
-        Map<String, Object> statisticsDataMap = ResultDataParse.getSummaryDataMap(content, new ErrorsSummaryConsumer());
+        Map<String, Object> statisticsDataMap = ResultDataParse.getSummaryDataMap(reportId, new ErrorsSummaryConsumer());
         List<Errors> errors = ResultDataParse.summaryMapParsing(statisticsDataMap, Errors.class);
         errors.forEach(e -> {
             e.setPercentOfErrors(decimalFormat.format(new BigDecimal(e.getPercentOfErrors())));

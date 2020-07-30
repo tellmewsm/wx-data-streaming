@@ -31,7 +31,7 @@ public class OverviewReport extends AbstractReport {
     @Override
     public void execute() {
 
-        Map<String, Object> activeDataMap = ResultDataParse.getGraphDataMap(content, new ActiveThreadsGraphConsumer());
+        Map<String, Object> activeDataMap = ResultDataParse.getGraphDataMap(reportId, new ActiveThreadsGraphConsumer());
         List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap, "users", "yAxis");
         Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getGroupName));
         AtomicInteger maxUser = new AtomicInteger();
@@ -41,24 +41,24 @@ public class OverviewReport extends AbstractReport {
             maxUser.addAndGet(i);
         });
 
-        Map<String, Object> hitsDataMap = ResultDataParse.getGraphDataMap(content, new HitsPerSecondGraphConsumer());
+        Map<String, Object> hitsDataMap = ResultDataParse.getGraphDataMap(reportId, new HitsPerSecondGraphConsumer());
         List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsDataMap, "hits", "yAxis2");
         double hits = hitsList.stream().map(ChartsData::getyAxis2)
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);
 
-        Map<String, Object> errorDataMap = ResultDataParse.getSummaryDataMap(content, new StatisticsSummaryConsumer());
+        Map<String, Object> errorDataMap = ResultDataParse.getSummaryDataMap(reportId, new StatisticsSummaryConsumer());
         List<Statistics> statisticsList = ResultDataParse.summaryMapParsing(errorDataMap, Statistics.class);
         double avgTp90 = statisticsList.stream().map(item -> Double.parseDouble(item.getTp90())).mapToDouble(Double::doubleValue).average().orElse(0);
         double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived())).mapToDouble(Double::doubleValue).average().orElse(0);
 
-        Map<String, Object> responseDataMap = ResultDataParse.getGraphDataMap(content, new ResponseTimeOverTimeGraphConsumer());
+        Map<String, Object> responseDataMap = ResultDataParse.getGraphDataMap(reportId, new ResponseTimeOverTimeGraphConsumer());
         List<ChartsData> responseDataList = ResultDataParse.graphMapParsing(responseDataMap, "response", "yAxis2");
         double responseTime = responseDataList.stream().map(ChartsData::getyAxis2)
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);
 
-        Map<String, Object> sampleDataMap = ResultDataParse.getSampleDataMap(content, new RequestsSummaryConsumer());
+        Map<String, Object> sampleDataMap = ResultDataParse.getSampleDataMap(reportId, new RequestsSummaryConsumer());
         String error = "";
         for (String key : sampleDataMap.keySet()) {
             MapResultData mapResultData = (MapResultData) sampleDataMap.get(key);

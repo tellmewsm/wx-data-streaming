@@ -9,20 +9,17 @@ import io.metersphere.streaming.report.Report;
 import io.metersphere.streaming.service.TestResultSaveService;
 
 import java.text.DecimalFormat;
-import java.util.List;
 import java.util.UUID;
 
 public abstract class AbstractReport implements Report {
 
     protected String reportId;
-    protected List<String> content;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final TestResultSaveService testResultSaveService;
     protected DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
-    public void init(String reportId, List<String> content) {
+    public void init(String reportId) {
         this.reportId = reportId;
-        this.content = content;
     }
 
     public AbstractReport() {

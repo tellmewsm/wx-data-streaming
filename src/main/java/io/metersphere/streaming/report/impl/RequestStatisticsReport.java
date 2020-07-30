@@ -22,7 +22,7 @@ public class RequestStatisticsReport extends AbstractReport {
 
         DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
-        Map<String, Object> statisticsDataMap = ResultDataParse.getSummaryDataMap(content, new StatisticsSummaryConsumer());
+        Map<String, Object> statisticsDataMap = ResultDataParse.getSummaryDataMap(reportId, new StatisticsSummaryConsumer());
         List<Statistics> statistics = ResultDataParse.summaryMapParsing(statisticsDataMap, Statistics.class);
 
         statistics.forEach(statistic -> {
