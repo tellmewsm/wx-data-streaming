@@ -3,12 +3,12 @@ package io.metersphere.streaming.report.impl;
 import io.metersphere.streaming.commons.constants.ReportKeys;
 import io.metersphere.streaming.report.base.Statistics;
 import io.metersphere.streaming.report.parse.ResultDataParse;
+import org.apache.jmeter.report.processor.SampleContext;
 import org.apache.jmeter.report.processor.StatisticsSummaryConsumer;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.Map;
 
 public class RequestStatisticsReport extends AbstractReport {
 
@@ -21,9 +21,8 @@ public class RequestStatisticsReport extends AbstractReport {
     public void execute() {
 
         DecimalFormat decimalFormat = new DecimalFormat("0.00");
-
-        Map<String, Object> statisticsDataMap = ResultDataParse.getSummaryDataMap(reportId, new StatisticsSummaryConsumer());
-        List<Statistics> statistics = ResultDataParse.summaryMapParsing(statisticsDataMap, Statistics.class);
+        SampleContext statisticsDataMap = sampleContextMap.get(StatisticsSummaryConsumer.class.getSimpleName());
+        List<Statistics> statistics = ResultDataParse.summaryMapParsing(statisticsDataMap.getData(), Statistics.class);
 
         statistics.forEach(statistic -> {
             statistic.setAverage(decimalFormat.format(new BigDecimal(statistic.getAverage())));

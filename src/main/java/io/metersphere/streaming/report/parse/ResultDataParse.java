@@ -13,6 +13,9 @@ import org.apache.jmeter.report.core.SampleMetadata;
 import org.apache.jmeter.report.dashboard.JsonizerVisitor;
 import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.AbstractOverTimeGraphConsumer;
+import org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer;
+import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
+import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
 import org.springframework.batch.item.ExecutionContext;
@@ -27,10 +30,47 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static org.apache.jmeter.report.dashboard.ReportGenerator.*;
+
 public class ResultDataParse {
 
     private static final String DATE_TIME_PATTERN = "yyyy/MM/dd HH:mm:ss";
     private static final String TIME_PATTERN = "HH:mm:ss";
+
+
+    public static List<AbstractSampleConsumer> initConsumerList() {
+        List<AbstractSampleConsumer> consumerList = new ArrayList<>();
+        JmeterReportProperties jmeterReportProperties = CommonBeanFactory.getBean(JmeterReportProperties.class);
+        Integer granularity = jmeterReportProperties.getGranularity();
+
+        ActiveThreadsGraphConsumer activeThreadsGraphConsumer = new ActiveThreadsGraphConsumer();
+        activeThreadsGraphConsumer.setGranularity(granularity);
+        activeThreadsGraphConsumer.initialize();
+        consumerList.add(activeThreadsGraphConsumer);
+
+        HitsPerSecondGraphConsumer hitsPerSecondGraphConsumer = new HitsPerSecondGraphConsumer();
+        hitsPerSecondGraphConsumer.setGranularity(granularity);
+        hitsPerSecondGraphConsumer.initialize();
+        consumerList.add(hitsPerSecondGraphConsumer);
+
+
+        ResponseTimeOverTimeGraphConsumer responseTimeOverTimeGraphConsumer = new ResponseTimeOverTimeGraphConsumer();
+        responseTimeOverTimeGraphConsumer.setGranularity(granularity);
+        responseTimeOverTimeGraphConsumer.initialize();
+        consumerList.add(responseTimeOverTimeGraphConsumer);
+
+        consumerList.add(new StatisticsSummaryConsumer());
+        consumerList.add(new RequestsSummaryConsumer());
+        consumerList.add(new ErrorsSummaryConsumer());
+        consumerList.add(new Top5ErrorsBySamplerConsumer());
+
+        FilterConsumer dateRangeConsumer = createFilterByDateRange();
+        dateRangeConsumer.addSampleConsumer(createBeginDateConsumer());
+        dateRangeConsumer.addSampleConsumer(createEndDateConsumer());
+
+        consumerList.add(dateRangeConsumer);
+        return consumerList;
+    }
 
     public static <T> List<T> summaryMapParsing(Map<String, Object> map, Class<T> clazz) {
         List<T> list = new ArrayList<>();
@@ -180,6 +220,55 @@ public class ResultDataParse {
         return sampleContext;
     }
 
+    public static Map<String, SampleContext> initJMeterConsumer(String reportId, List<AbstractSampleConsumer> consumerList) {
+        int row = 0;
+        // 使用反射获取properties
+        MsJMeterUtils.loadJMeterProperties("jmeter.properties");
+        SampleMetadata sampleMetaData = createTestMetaData();
+
+        Map<String, SampleContext> resultSampleContext = new HashMap<>();
+        consumerList.forEach(consumer -> {
+            SampleContext sampleContext = new SampleContext();
+            consumer.setSampleContext(sampleContext);
+            consumer.startConsuming();
+            resultSampleContext.put(consumer.getClass().getSimpleName(), sampleContext);
+        });
+
+        SqlSessionFactory sqlSessionFactory = CommonBeanFactory.getBean(SqlSessionFactory.class);
+        MyBatisCursorItemReader<LoadTestReportDetail> myBatisCursorItemReader = new MyBatisCursorItemReaderBuilder<LoadTestReportDetail>()
+                .sqlSessionFactory(sqlSessionFactory)
+                // 设置queryId
+                .queryId("io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper.fetchTestReportDetails")
+                .build();
+        try {
+            Map<String, Object> param = new HashMap<>();
+            param.put("reportId", reportId);
+            myBatisCursorItemReader.setParameterValues(param);
+            myBatisCursorItemReader.open(new ExecutionContext());
+            LoadTestReportDetail loadTestReportDetail;
+            while ((loadTestReportDetail = myBatisCursorItemReader.read()) != null) {
+                //
+                String content = loadTestReportDetail.getContent();
+                StringTokenizer tokenizer = new StringTokenizer(content, "\n");
+                while (tokenizer.hasMoreTokens()) {
+                    String line = tokenizer.nextToken();
+                    String[] data = line.split(",", -1);
+                    Sample sample = new Sample(row++, sampleMetaData, data);
+
+                    consumerList.forEach(consumer -> consumer.consume(sample, 0));
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.error(e);
+        } finally {
+            myBatisCursorItemReader.close();
+        }
+
+        consumerList.forEach(SampleConsumer::stopConsuming);
+
+        return resultSampleContext;
+    }
+
     // Create a static SampleMetadataObject
     private static SampleMetadata createTestMetaData() {
         String columnsString = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
@@ -226,5 +315,27 @@ public class ResultDataParse {
             fields[i].set(t, args[i]);
         }
         return t;
+    }
+
+
+    private static FilterConsumer createFilterByDateRange() {
+        FilterConsumer dateRangeFilter = new FilterConsumer();
+        dateRangeFilter.setName(DATE_RANGE_FILTER_CONSUMER_NAME);
+        dateRangeFilter.setSamplePredicate(sample -> true);
+        return dateRangeFilter;
+    }
+
+    private static AggregateConsumer createEndDateConsumer() {
+        AggregateConsumer endDateConsumer = new AggregateConsumer(
+                new MaxAggregator(), sample -> (double) sample.getEndTime());
+        endDateConsumer.setName(END_DATE_CONSUMER_NAME);
+        return endDateConsumer;
+    }
+
+    private static AggregateConsumer createBeginDateConsumer() {
+        AggregateConsumer beginDateConsumer = new AggregateConsumer(
+                new MinAggregator(), sample -> (double) sample.getStartTime());
+        beginDateConsumer.setName(BEGIN_DATE_CONSUMER_NAME);
+        return beginDateConsumer;
     }
 }

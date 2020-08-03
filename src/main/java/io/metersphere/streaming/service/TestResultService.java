@@ -14,11 +14,14 @@ import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.report.ReportGeneratorFactory;
 import io.metersphere.streaming.report.impl.AbstractReport;
+import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jmeter.report.processor.SampleContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -144,11 +147,16 @@ public class TestResultService {
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
         LogUtil.info("report generators size: {}", reportGenerators.size());
         CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
+
+        Map<String, SampleContext> sampleContextMap = ResultDataParse.initJMeterConsumer(reportId, ResultDataParse.initConsumerList());
+
         reportGenerators.forEach(r -> reportThreadPool.execute(() -> {
             LogUtil.info("Report Key: " + r.getReportKey());
-            r.init(reportId);
+            r.init(reportId, sampleContextMap);
             try {
                 r.execute();
+            } catch (Exception e) {
+                LogUtil.error(e);
             } finally {
                 countDownLatch.countDown();
             }
@@ -161,4 +169,6 @@ public class TestResultService {
             testResultSaveService.saveReportReadyStatus(reportId);
         }
     }
+
+
 }

@@ -2,8 +2,8 @@ package io.metersphere.streaming.report.impl;
 
 import io.metersphere.streaming.commons.constants.ReportKeys;
 import io.metersphere.streaming.report.base.ReportTimeInfo;
-import io.metersphere.streaming.report.parse.ResultDataParse;
-import org.apache.jmeter.report.processor.*;
+import org.apache.jmeter.report.processor.FilterConsumer;
+import org.apache.jmeter.report.processor.ValueResultData;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -12,7 +12,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static org.apache.jmeter.report.dashboard.ReportGenerator.*;
+import static org.apache.jmeter.report.dashboard.ReportGenerator.BEGIN_DATE_CONSUMER_NAME;
+import static org.apache.jmeter.report.dashboard.ReportGenerator.END_DATE_CONSUMER_NAME;
 
 public class TimeInfoReport extends AbstractReport {
 
@@ -29,11 +30,9 @@ public class TimeInfoReport extends AbstractReport {
     }
 
     private ReportTimeInfo getReportTimeInfo() {
-        FilterConsumer dateRangeConsumer = createFilterByDateRange();
-        dateRangeConsumer.addSampleConsumer(createBeginDateConsumer());
-        dateRangeConsumer.addSampleConsumer(createEndDateConsumer());
 
-        Map<String, Object> sampleDataMap = ResultDataParse.getSampleDataMap(reportId, dateRangeConsumer);
+        Map<String, Object> sampleDataMap = sampleContextMap.get(FilterConsumer.class.getSimpleName()).getData();
+
         ValueResultData beginDateResult = (ValueResultData) sampleDataMap.get(BEGIN_DATE_CONSUMER_NAME);
         ValueResultData endDateResult = (ValueResultData) sampleDataMap.get(END_DATE_CONSUMER_NAME);
         long startTimeStamp = ((Double) beginDateResult.getValue()).longValue();
@@ -52,24 +51,4 @@ public class TimeInfoReport extends AbstractReport {
         return reportTimeInfo;
     }
 
-    private FilterConsumer createFilterByDateRange() {
-        FilterConsumer dateRangeFilter = new FilterConsumer();
-        dateRangeFilter.setName(DATE_RANGE_FILTER_CONSUMER_NAME);
-        dateRangeFilter.setSamplePredicate(sample -> true);
-        return dateRangeFilter;
-    }
-
-    private AggregateConsumer createEndDateConsumer() {
-        AggregateConsumer endDateConsumer = new AggregateConsumer(
-                new MaxAggregator(), sample -> (double) sample.getEndTime());
-        endDateConsumer.setName(END_DATE_CONSUMER_NAME);
-        return endDateConsumer;
-    }
-
-    private AggregateConsumer createBeginDateConsumer() {
-        AggregateConsumer beginDateConsumer = new AggregateConsumer(
-                new MinAggregator(), sample -> (double) sample.getStartTime());
-        beginDateConsumer.setName(BEGIN_DATE_CONSUMER_NAME);
-        return beginDateConsumer;
-    }
 }
