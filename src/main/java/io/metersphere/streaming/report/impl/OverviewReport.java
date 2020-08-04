@@ -54,7 +54,8 @@ public class OverviewReport extends AbstractReport {
         double responseTime = statisticsList.stream().map(item -> Double.parseDouble(item.getAverage()) * Double.parseDouble(item.getSamples()))
                 .mapToDouble(Double::doubleValue).sum() / allSamples;
 
-        double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived())).mapToDouble(Double::doubleValue).average().orElse(0);
+        double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived()) * Double.parseDouble(item.getSamples()))
+                .mapToDouble(Double::doubleValue).sum() / allSamples;
 
         SampleContext sampleDataMap = sampleContextMap.get(RequestsSummaryConsumer.class.getSimpleName());
         Map<String, Object> data = sampleDataMap.getData();
