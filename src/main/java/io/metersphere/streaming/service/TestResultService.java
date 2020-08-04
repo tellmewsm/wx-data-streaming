@@ -115,7 +115,7 @@ public class TestResultService {
         LogUtil.info("test completed: " + report.getTestId());
 
         // 确保计算报告完全执行
-        generateReportComplete(report.getId());
+        completeThreadPool.execute(() -> generateReportComplete(report.getId()));
     }
 
     public void generateReport(String reportId) {
