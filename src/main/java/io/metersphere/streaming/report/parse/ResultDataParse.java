@@ -7,6 +7,7 @@ import io.metersphere.streaming.commons.utils.MsJMeterUtils;
 import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.report.base.ChartsData;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.jmeter.report.core.Sample;
 import org.apache.jmeter.report.core.SampleMetadata;
@@ -91,7 +92,9 @@ public class ResultDataParse {
                             if (value == null) {
                                 strArray[j] = "";
                             } else {
-                                strArray[j] = value.toString();
+                                String input = value.toString();
+                                // unicode 转义
+                                strArray[j] = StringEscapeUtils.unescapeJava(input);
                             }
                         }
 
@@ -307,7 +310,7 @@ public class ResultDataParse {
         }
         T t = clazz.newInstance();
         Field[] fields = clazz.getDeclaredFields();
-        if (fields == null || fields.length > args.length) {
+        if (fields.length > args.length) {
             throw new IndexOutOfBoundsException();
         }
         for (int i = 0; i < fields.length; i++) {
