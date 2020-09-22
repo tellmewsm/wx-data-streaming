@@ -18,6 +18,7 @@ import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.report.processor.SampleContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -44,6 +45,7 @@ public class TestResultService {
     ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
     ExecutorService reportThreadPool = Executors.newFixedThreadPool(30);
 
+    @Transactional(rollbackFor = Exception.class)
     public void savePartContent(String reportId, String testId, String content) {
         // 更新状态
         extLoadTestReportMapper.updateStatus(reportId, TestStatus.Running.name(), TestStatus.Starting.name());
