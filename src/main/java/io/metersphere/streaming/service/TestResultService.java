@@ -70,7 +70,7 @@ public class TestResultService {
         StringBuilder content = new StringBuilder();
         content.append(start).append(",");
         content.append(metric.getResponseTime()).append(",");
-        content.append(metric.getSampleLabel()).append(",");
+        content.append(warp(metric.getSampleLabel())).append(",");
         content.append(metric.getResponseCode()).append(",");
         // response message
         content.append(",");
@@ -78,7 +78,7 @@ public class TestResultService {
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
         // failure message contains \n
-        String message = convertFailureMessage(metric);
+        String message = warp(convertFailureMessage(metric));
         content.append(message).append(",");
         content.append(metric.getBytes()).append(",");
         content.append(metric.getSentBytes()).append(",");
@@ -86,7 +86,7 @@ public class TestResultService {
         content.append(metric.getAllThreads()).append(",");
         // 处理url换行问题
         if (StringUtils.isNotBlank(metric.getUrl())) {
-            content.append(StringUtils.deleteWhitespace(metric.getUrl())).append(",");
+            content.append(warp(StringUtils.deleteWhitespace(metric.getUrl()))).append(",");
         } else {
             content.append(",");
         }
@@ -94,6 +94,13 @@ public class TestResultService {
         content.append(metric.getIdleTime()).append(",");
         content.append(metric.getConnectTime()).append("\n");
         return content.toString();
+    }
+
+    private String warp(String value) {
+        if (StringUtils.contains(value, ",")) {
+            return StringUtils.wrapIfMissing(value, "\"");
+        }
+        return value;
     }
 
     private String convertFailureMessage(Metric metric) {
