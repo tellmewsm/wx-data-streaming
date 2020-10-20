@@ -6,9 +6,9 @@ ARG MS_VERSION=dev
 
 RUN mkdir -p /opt/apps
 
-ADD target/data-streaming-1.3.jar /opt/apps
+ADD target/data-streaming-1.4.jar /opt/apps
 
-ENV JAVA_APP_JAR=/opt/apps/data-streaming-1.3.jar
+ENV JAVA_APP_JAR=/opt/apps/data-streaming-1.4.jar
 
 ENV AB_OFF=true
 
