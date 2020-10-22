@@ -15,6 +15,7 @@ import org.apache.jmeter.report.dashboard.JsonizerVisitor;
 import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.AbstractOverTimeGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer;
+import org.apache.jmeter.report.processor.graph.impl.CodesPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
@@ -59,6 +60,11 @@ public class ResultDataParse {
         responseTimeOverTimeGraphConsumer.setGranularity(granularity);
         responseTimeOverTimeGraphConsumer.initialize();
         consumerList.add(responseTimeOverTimeGraphConsumer);
+
+        CodesPerSecondGraphConsumer responseCodeOverTimeGraphConsumer = new CodesPerSecondGraphConsumer();
+        responseCodeOverTimeGraphConsumer.setGranularity(granularity);
+        responseCodeOverTimeGraphConsumer.initialize();
+        consumerList.add(responseCodeOverTimeGraphConsumer);
 
         consumerList.add(new StatisticsSummaryConsumer());
         consumerList.add(new RequestsSummaryConsumer());
