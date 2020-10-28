@@ -19,7 +19,7 @@ public class ResponseCodeChartReport extends AbstractReport {
     public void execute() {
         SampleContext responseCodeMap = sampleContextMap.get(CodesPerSecondGraphConsumer.class.getSimpleName());
 
-        List<ChartsData> resultList = ResultDataParse.graphMapParsing(responseCodeMap.getData(), "responseCode", "yAxis");
+        List<ChartsData> resultList = ResultDataParse.graphMapParsing(responseCodeMap.getData(), null, "yAxis");
 
         saveResult(reportId, resultList);
     }

@@ -19,7 +19,7 @@ public class ErrorsChartReport extends AbstractReport {
     public void execute() {
         SampleContext responseCodeMap = sampleContextMap.get(ErrorsGraphConsumer.class.getSimpleName());
 
-        List<ChartsData> resultList = ResultDataParse.graphMapParsing(responseCodeMap.getData(), "error", "yAxis");
+        List<ChartsData> resultList = ResultDataParse.graphMapParsing(responseCodeMap.getData(), null, "yAxis");
 
         saveResult(reportId, resultList);
     }

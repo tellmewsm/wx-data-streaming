@@ -161,7 +161,11 @@ public class ResultDataParse {
                                 chartsData.setyAxis2(new BigDecimal(-1));
                             }
                             if (series.getSize() == 1) {
-                                chartsData.setGroupName(seriesName);
+                                if (StringUtils.isBlank(seriesName)) {
+                                    chartsData.setGroupName((String) label.getValue());
+                                } else {
+                                    chartsData.setGroupName(seriesName);
+                                }
                             } else {
                                 chartsData.setGroupName((String) label.getValue());
                             }
