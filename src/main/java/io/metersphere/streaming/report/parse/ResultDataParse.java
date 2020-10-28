@@ -146,6 +146,10 @@ public class ResultDataParse {
                             ChartsData chartsData = new ChartsData();
                             BigDecimal bigDecimal = new BigDecimal(split[0]);
                             String timeStamp = bigDecimal.toPlainString();
+                            // timestamp 可能会出现0.0
+                            if (timeStamp.startsWith("0")) {
+                                timeStamp = "0";
+                            }
                             String time = null;
                             try {
                                 time = formatDate(stampToDate(DATE_TIME_PATTERN, timeStamp));
