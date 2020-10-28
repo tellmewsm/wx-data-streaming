@@ -12,7 +12,7 @@ public class ErrorSeriesSelector extends AbstractSeriesSelector {
     @Override
     public Iterable<String> select(Sample sample) {
         if (StringUtils.isBlank(sample.getFailureMessage())) {
-            return Collections.emptyList();
+            return Collections.singletonList("OK");
         }
         return Collections.singletonList(sample.getFailureMessage());
     }
