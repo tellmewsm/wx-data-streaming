@@ -6,6 +6,7 @@ import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
 import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.report.base.ChartsData;
+import io.metersphere.streaming.report.graph.consumer.ErrorsGraphConsumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -65,6 +66,11 @@ public class ResultDataParse {
         responseCodeOverTimeGraphConsumer.setGranularity(granularity);
         responseCodeOverTimeGraphConsumer.initialize();
         consumerList.add(responseCodeOverTimeGraphConsumer);
+
+        ErrorsGraphConsumer errorsGraphConsumer = new ErrorsGraphConsumer();
+        errorsGraphConsumer.setGranularity(granularity);
+        errorsGraphConsumer.initialize();
+        consumerList.add(errorsGraphConsumer);
 
         consumerList.add(new StatisticsSummaryConsumer());
         consumerList.add(new RequestsSummaryConsumer());
