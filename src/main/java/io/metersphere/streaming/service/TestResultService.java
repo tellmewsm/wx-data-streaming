@@ -135,15 +135,19 @@ public class TestResultService {
     }
 
     private void generateReportComplete(String reportId) {
-        //
-        generateReport(reportId, true); // 强制执行一次生成报告
-        // 标记结束
-        testResultSaveService.saveReportCompletedStatus(reportId);
-
         LoadTestReport report = new LoadTestReport();
         report.setId(reportId);
         report.setUpdateTime(System.currentTimeMillis());
+        // 测试结束后执行计算报告
+        report.setStatus(TestStatus.Reporting.name());
+        loadTestReportMapper.updateByPrimaryKeySelective(report);
+        // 强制执行一次生成报告
+        generateReport(reportId, true);
+        // 标记结束
+        testResultSaveService.saveReportCompletedStatus(reportId);
+
         // 测试结束后保存状态
+        report.setUpdateTime(System.currentTimeMillis());
         report.setStatus(TestStatus.Completed.name());
         loadTestReportMapper.updateByPrimaryKeySelective(report);
     }
