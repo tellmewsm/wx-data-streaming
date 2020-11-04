@@ -184,4 +184,20 @@ public class TestResultService {
     }
 
 
+    public void saveErrorMessage(String reportId, String message) {
+        LoadTestReport loadTestReport = new LoadTestReport();
+        loadTestReport.setId(reportId);
+        loadTestReport.setStatus(TestStatus.Error.name());
+        loadTestReport.setUpdateTime(System.currentTimeMillis());
+        loadTestReport.setDescription(message);
+        loadTestReportMapper.updateByPrimaryKeySelective(loadTestReport);
+        // 查询 test_id
+        LoadTestReport testReportFromDB = loadTestReportMapper.selectByPrimaryKey(reportId);
+        LoadTestWithBLOBs loadTest = new LoadTestWithBLOBs();
+        loadTest.setId(testReportFromDB.getTestId());
+        loadTest.setStatus(TestStatus.Error.name());
+        loadTest.setDescription(message);
+        loadTest.setUpdateTime(System.currentTimeMillis());
+        loadTestMapper.updateByPrimaryKeySelective(loadTest);
+    }
 }

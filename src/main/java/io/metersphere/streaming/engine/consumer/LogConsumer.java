@@ -3,6 +3,7 @@ package io.metersphere.streaming.engine.consumer;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Log;
 import io.metersphere.streaming.service.LogResultService;
+import io.metersphere.streaming.service.TestResultService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -26,6 +27,8 @@ public class LogConsumer {
 
     @Resource
     private LogResultService logResultService;
+    @Resource
+    private TestResultService testResultService;
     private final BlockingQueue<Log> logQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
     private final CopyOnWriteArrayList<Log> logs = new CopyOnWriteArrayList<>();
 
@@ -39,6 +42,13 @@ public class LogConsumer {
         String resourceId = StringUtils.substringBefore(content, SEPARATOR);
         content = StringUtils.substringAfter(content, SEPARATOR);
         content = StringUtils.appendIfMissing(content, "\n");
+
+        if (StringUtils.contains(content, "Caused by: java.lang.IllegalArgumentException: File")) {
+            testResultService.saveErrorMessage(reportId, "Jmeter exited. Please check jmx and related files");
+        }
+        if (StringUtils.contains(content, "Error in NonGUIDriver java.lang.IllegalArgumentException: Problem loading XML from")) {
+            testResultService.saveErrorMessage(reportId, "Jmeter exited. Please check jmx and jars.");
+        }
 
         Log log = Log.builder().reportId(reportId).resourceId(resourceId).content(content).build();
         logQueue.put(log);
