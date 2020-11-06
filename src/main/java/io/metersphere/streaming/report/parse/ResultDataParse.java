@@ -6,6 +6,7 @@ import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
 import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.report.base.ChartsData;
+import io.metersphere.streaming.report.graph.consumer.DistributedActiveThreadsGraphConsumer;
 import io.metersphere.streaming.report.graph.consumer.ErrorsGraphConsumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -15,7 +16,6 @@ import org.apache.jmeter.report.core.SampleMetadata;
 import org.apache.jmeter.report.dashboard.JsonizerVisitor;
 import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.AbstractOverTimeGraphConsumer;
-import org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.CodesPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
@@ -46,10 +46,10 @@ public class ResultDataParse {
         JmeterReportProperties jmeterReportProperties = CommonBeanFactory.getBean(JmeterReportProperties.class);
         Integer granularity = jmeterReportProperties.getGranularity();
 
-        ActiveThreadsGraphConsumer activeThreadsGraphConsumer = new ActiveThreadsGraphConsumer();
-        activeThreadsGraphConsumer.setGranularity(granularity);
-        activeThreadsGraphConsumer.initialize();
-        consumerList.add(activeThreadsGraphConsumer);
+        DistributedActiveThreadsGraphConsumer distributedActiveThreadsGraphConsumer = new DistributedActiveThreadsGraphConsumer();
+        distributedActiveThreadsGraphConsumer.setGranularity(granularity);
+        distributedActiveThreadsGraphConsumer.initialize();
+        consumerList.add(distributedActiveThreadsGraphConsumer);
 
         HitsPerSecondGraphConsumer hitsPerSecondGraphConsumer = new HitsPerSecondGraphConsumer();
         hitsPerSecondGraphConsumer.setGranularity(granularity);

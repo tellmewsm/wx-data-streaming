@@ -4,9 +4,9 @@ import io.metersphere.streaming.commons.constants.ReportKeys;
 import io.metersphere.streaming.report.base.ChartsData;
 import io.metersphere.streaming.report.base.Statistics;
 import io.metersphere.streaming.report.base.TestOverview;
+import io.metersphere.streaming.report.graph.consumer.DistributedActiveThreadsGraphConsumer;
 import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.jmeter.report.processor.*;
-import org.apache.jmeter.report.processor.graph.impl.ActiveThreadsGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 
 import java.math.BigDecimal;
@@ -29,7 +29,7 @@ public class OverviewReport extends AbstractReport {
 
     @Override
     public void execute() {
-        SampleContext activeDataMap = sampleContextMap.get(ActiveThreadsGraphConsumer.class.getSimpleName());
+        SampleContext activeDataMap = sampleContextMap.get(DistributedActiveThreadsGraphConsumer.class.getSimpleName());
         List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap.getData(), "users", "yAxis");
         Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getGroupName));
         AtomicInteger maxUser = new AtomicInteger();
