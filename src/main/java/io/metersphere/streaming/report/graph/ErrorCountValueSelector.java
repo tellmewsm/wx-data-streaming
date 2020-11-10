@@ -23,8 +23,7 @@ public class ErrorCountValueSelector extends CountValueSelector {
     @Override
     public Double select(String series, Sample sample) {
         if (MetricUtils.isSuccessCode(sample.getResponseCode())) {
-            if (StringUtils.isEmpty(sample.getResponseCode()) &&
-                    !StringUtils.isEmpty(sample.getFailureMessage())) {
+            if (!StringUtils.isEmpty(sample.getFailureMessage())) {
                 if (ASSERTION_RESULTS_FAILURE_MESSAGE) {
                     String msg = sample.getFailureMessage();
                     if (!StringUtils.isEmpty(msg)) {
