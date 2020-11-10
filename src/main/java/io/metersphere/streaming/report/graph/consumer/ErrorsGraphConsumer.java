@@ -2,9 +2,13 @@
 
 package io.metersphere.streaming.report.graph.consumer;
 
+import io.metersphere.streaming.report.graph.ErrorCountValueSelector;
 import io.metersphere.streaming.report.graph.ErrorSeriesSelector;
 import org.apache.jmeter.report.processor.TimeRateAggregatorFactory;
-import org.apache.jmeter.report.processor.graph.*;
+import org.apache.jmeter.report.processor.graph.AbstractGraphConsumer;
+import org.apache.jmeter.report.processor.graph.AbstractOverTimeGraphConsumer;
+import org.apache.jmeter.report.processor.graph.GroupInfo;
+import org.apache.jmeter.report.processor.graph.TimeStampKeysSelector;
 
 import java.util.Collections;
 import java.util.Map;
@@ -28,7 +32,7 @@ public class ErrorsGraphConsumer extends AbstractOverTimeGraphConsumer {
                         new TimeRateAggregatorFactory(),
                         new ErrorSeriesSelector(),
                         // We ignore Transaction Controller results
-                        new CountValueSelector(true),
+                        new ErrorCountValueSelector(true),
                         false,
                         false));
     }

@@ -29,7 +29,6 @@ public class ErrorSeriesSelector extends AbstractSeriesSelector {
         if (MetricUtils.isSuccessCode(responseCode) ||
                 (StringUtils.isEmpty(responseCode) &&
                         !StringUtils.isEmpty(sample.getFailureMessage()))) {
-            key = MetricUtils.ASSERTION_FAILED;
             if (ASSERTION_RESULTS_FAILURE_MESSAGE) {
                 String msg = sample.getFailureMessage();
                 if (!StringUtils.isEmpty(msg)) {
