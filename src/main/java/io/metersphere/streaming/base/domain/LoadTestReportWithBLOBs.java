@@ -12,7 +12,7 @@ import java.io.Serializable;
 public class LoadTestReportWithBLOBs extends LoadTestReport implements Serializable {
     private String description;
 
-    private String content;
+    private String loadConfiguration;
 
     private static final long serialVersionUID = 1L;
 }

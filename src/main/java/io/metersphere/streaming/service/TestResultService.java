@@ -1,9 +1,6 @@
 package io.metersphere.streaming.service;
 
-import io.metersphere.streaming.base.domain.LoadTestReport;
-import io.metersphere.streaming.base.domain.LoadTestReportDetail;
-import io.metersphere.streaming.base.domain.LoadTestReportDetailExample;
-import io.metersphere.streaming.base.domain.LoadTestWithBLOBs;
+import io.metersphere.streaming.base.domain.*;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
@@ -11,16 +8,20 @@ import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.LogUtil;
+import io.metersphere.streaming.engine.consumer.DataConsumer;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.report.ReportGeneratorFactory;
 import io.metersphere.streaming.report.impl.AbstractReport;
 import io.metersphere.streaming.report.parse.ResultDataParse;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.report.processor.SampleContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -41,6 +42,8 @@ public class TestResultService {
     private TestResultSaveService testResultSaveService;
     @Resource
     private ExtLoadTestMapper extLoadTestMapper;
+    @Resource
+    private FileService fileService;
 
     ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
     ExecutorService reportThreadPool = Executors.newFixedThreadPool(30);
@@ -122,9 +125,25 @@ public class TestResultService {
         loadTest.setStatus(TestStatus.Completed.name());
         loadTestMapper.updateByPrimaryKeySelective(loadTest);
         LogUtil.info("test completed: " + report.getTestId());
-
+        // 保存jtl
+        saveJtlFile(metric);
         // 确保计算报告完全执行
         completeThreadPool.execute(() -> generateReportComplete(report.getId()));
+    }
+
+    private void saveJtlFile(Metric metric) {
+        String filename = metric.getReportId() + ".jtl";
+        File file = new File(DataConsumer.TEMP_DIRECTORY_PATH + File.separator + filename);
+        FileMetadata fileMetadata = fileService.saveFile(file);
+        LoadTestReportWithBLOBs loadTestReportWithBLOBs = new LoadTestReportWithBLOBs();
+        loadTestReportWithBLOBs.setFileId(fileMetadata.getId());
+        loadTestReportWithBLOBs.setId(metric.getReportId());
+        loadTestReportMapper.updateByPrimaryKeySelective(loadTestReportWithBLOBs);
+        try {
+            FileUtils.forceDelete(file);
+        } catch (IOException e) {
+            LogUtil.error(e);
+        }
     }
 
     public void generateReport(String reportId) {
@@ -135,7 +154,7 @@ public class TestResultService {
     }
 
     private void generateReportComplete(String reportId) {
-        LoadTestReport report = new LoadTestReport();
+        LoadTestReportWithBLOBs report = new LoadTestReportWithBLOBs();
         report.setId(reportId);
         report.setUpdateTime(System.currentTimeMillis());
         // 测试结束后执行计算报告
@@ -185,7 +204,7 @@ public class TestResultService {
 
 
     public void saveErrorMessage(String reportId, String message) {
-        LoadTestReport loadTestReport = new LoadTestReport();
+        LoadTestReportWithBLOBs loadTestReport = new LoadTestReportWithBLOBs();
         loadTestReport.setId(reportId);
         loadTestReport.setStatus(TestStatus.Error.name());
         loadTestReport.setUpdateTime(System.currentTimeMillis());

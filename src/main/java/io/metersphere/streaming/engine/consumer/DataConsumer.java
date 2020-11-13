@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.service.TestResultService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import java.util.Date;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -22,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataConsumer {
+    public static final String HEADERS = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
+
     public static final String CONSUME_ID = "metric-data";
     public static final Integer QUEUE_SIZE = 1000;
     @Resource
@@ -32,6 +37,11 @@ public class DataConsumer {
     private final BlockingQueue<Metric> metricQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
     private boolean isRunning = true;
 
+    public static final String TEMP_DIRECTORY_PATH = FileUtils.getTempDirectoryPath();
+
+    static {
+        LogUtil.info("Temp dir: " + TEMP_DIRECTORY_PATH);
+    }
 
     @KafkaListener(id = CONSUME_ID, topics = "${kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(ConsumerRecord<?, String> record) throws Exception {
@@ -42,7 +52,18 @@ public class DataConsumer {
             testResultService.completeReport(metric);
             return;
         }
+        // 保存jtl文件
+        appendJtl(metric);
         metricQueue.put(metric);
+    }
+
+    private void appendJtl(Metric metric) throws IOException {
+        File file = new File(TEMP_DIRECTORY_PATH + File.separator + metric.getReportId() + ".jtl");
+        if (file.exists()) {
+            FileUtils.writeStringToFile(file, testResultService.convertToLine(metric), StandardCharsets.UTF_8, true);
+        } else {
+            FileUtils.writeStringToFile(file, HEADERS + "\n", StandardCharsets.UTF_8, true);
+        }
     }
 
     @PreDestroy
@@ -102,26 +123,5 @@ public class DataConsumer {
         });
         // 清空 list
         metrics.clear();
-    }
-
-    private String fetchGroupKey(Metric metric) {
-        // todo 处理分组字段
-        // 每个报告分组字段, 每秒, url, response-code
-        Date timestamp = metric.getTimestamp();
-        long l = divide5Seconds(timestamp.getTime());
-        return StringUtils.joinWith("|", l, metric.getUrl(), metric.getResponseCode());
-    }
-
-    private static long divide5Seconds(long timestamp) {
-        long l = timestamp / 1000;
-        long mod = l % 10;
-        long quotient = l / 10;
-        if (mod < 5) {
-            l = quotient * 10;
-        }
-        if (mod > 5) {
-            l = quotient * 10 + 5;
-        }
-        return l;
     }
 }

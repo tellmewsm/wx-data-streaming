@@ -5,24 +5,18 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class LoadTestReport implements Serializable {
+public class FileMetadata implements Serializable {
     private String id;
 
-    private String testId;
-
     private String name;
+
+    private String type;
 
     private Long createTime;
 
     private Long updateTime;
 
-    private String status;
-
-    private String userId;
-
-    private String triggerMode;
-
-    private String fileId;
+    private Long size;
 
     private static final long serialVersionUID = 1L;
 }
