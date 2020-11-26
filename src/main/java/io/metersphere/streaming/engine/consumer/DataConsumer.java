@@ -59,11 +59,10 @@ public class DataConsumer {
 
     private void appendJtl(Metric metric) throws IOException {
         File file = new File(TEMP_DIRECTORY_PATH + File.separator + metric.getReportId() + ".jtl");
-        if (file.exists()) {
-            FileUtils.writeStringToFile(file, testResultService.convertToLine(metric), StandardCharsets.UTF_8, true);
-        } else {
+        if (!file.exists()) {
             FileUtils.writeStringToFile(file, HEADERS + "\n", StandardCharsets.UTF_8, true);
         }
+        FileUtils.writeStringToFile(file, testResultService.convertToLine(metric), StandardCharsets.UTF_8, true);
     }
 
     @PreDestroy
