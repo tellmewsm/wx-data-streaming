@@ -1,6 +1,7 @@
 package io.metersphere.streaming.report.parse;
 
 import io.metersphere.streaming.base.domain.LoadTestReportDetail;
+import io.metersphere.streaming.commons.utils.CSVUtils;
 import io.metersphere.streaming.commons.utils.CommonBeanFactory;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
@@ -275,7 +276,7 @@ public class ResultDataParse {
                 StringTokenizer tokenizer = new StringTokenizer(content, "\n");
                 while (tokenizer.hasMoreTokens()) {
                     String line = tokenizer.nextToken();
-                    String[] data = line.split(",", -1);
+                    String[] data = CSVUtils.parseLine(line).toArray(new String[0]);
                     Sample sample = new Sample(row++, sampleMetaData, data);
 
                     consumerList.forEach(consumer -> consumer.consume(sample, 0));
