@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -132,15 +131,15 @@ public class TestResultService {
 
     private void saveJtlFile(Metric metric) {
         String filename = metric.getReportId() + ".jtl";
-        File file = new File(DataConsumer.TEMP_DIRECTORY_PATH + File.separator + filename);
-        FileMetadata fileMetadata = fileService.saveFile(file);
-        LoadTestReportWithBLOBs loadTestReportWithBLOBs = new LoadTestReportWithBLOBs();
-        loadTestReportWithBLOBs.setFileId(fileMetadata.getId());
-        loadTestReportWithBLOBs.setId(metric.getReportId());
-        loadTestReportMapper.updateByPrimaryKeySelective(loadTestReportWithBLOBs);
         try {
+            File file = new File(DataConsumer.TEMP_DIRECTORY_PATH + File.separator + filename);
+            FileMetadata fileMetadata = fileService.saveFile(file);
+            LoadTestReportWithBLOBs loadTestReportWithBLOBs = new LoadTestReportWithBLOBs();
+            loadTestReportWithBLOBs.setFileId(fileMetadata.getId());
+            loadTestReportWithBLOBs.setId(metric.getReportId());
+            loadTestReportMapper.updateByPrimaryKeySelective(loadTestReportWithBLOBs);
             FileUtils.forceDelete(file);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LogUtil.error(e);
         }
     }
