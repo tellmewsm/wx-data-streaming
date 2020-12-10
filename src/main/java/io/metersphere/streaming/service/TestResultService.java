@@ -80,9 +80,8 @@ public class TestResultService {
         content.append(metric.getThreadName()).append(",");
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
-        // failure message contains \n
-        String message = warp(convertFailureMessage(metric));
-        content.append(message).append(",");
+        // failure message contains \n , etc.
+        content.append(warp(metric.getFailureMessage())).append(",");
         content.append(metric.getBytes()).append(",");
         content.append(metric.getSentBytes()).append(",");
         content.append(metric.getGrpThreads()).append(",");
@@ -100,16 +99,16 @@ public class TestResultService {
     }
 
     private String warp(String value) {
-        if (StringUtils.contains(value, ",")) {
-            return StringUtils.wrapIfMissing(value, "\"");
+        // 1 先处理是否包含双引号
+        if (StringUtils.contains(value, "\"")) {
+            value = StringUtils.replace(value, "\"", "\"\"");
         }
+        // 2 然后处理是否包含逗号
+        if (StringUtils.contains(value, ",")) {
+            value = StringUtils.wrapIfMissing(value, "\"");
+        }
+        // 返回结果
         return value;
-    }
-
-    private String convertFailureMessage(Metric metric) {
-        String message = StringUtils.remove(metric.getFailureMessage(), "\n");
-        message = StringUtils.replace(message, ",", " ");
-        return message;
     }
 
     public void completeReport(Metric metric) {
