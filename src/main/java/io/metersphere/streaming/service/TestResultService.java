@@ -102,8 +102,8 @@ public class TestResultService {
         if (StringUtils.contains(value, "\"")) {
             value = StringUtils.replace(value, "\"", "\"\"");
         }
-        // 2 然后处理是否包含逗号
-        if (StringUtils.contains(value, ",")) {
+        // 2 然后处理是否包含逗号、 \n
+        if (StringUtils.contains(value, ",") || StringUtils.contains(value, "\n")) {
             value = StringUtils.wrapIfMissing(value, "\"");
         }
         // 返回结果
