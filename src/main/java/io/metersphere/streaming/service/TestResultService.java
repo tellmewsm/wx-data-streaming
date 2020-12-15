@@ -80,7 +80,7 @@ public class TestResultService {
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
         // failure message contains \n , etc.
-        content.append(warp(metric.getFailureMessage())).append(",");
+        content.append(warp(convertFailureMessage(metric))).append(",");
         content.append(metric.getBytes()).append(",");
         content.append(metric.getSentBytes()).append(",");
         content.append(metric.getGrpThreads()).append(",");
@@ -108,6 +108,10 @@ public class TestResultService {
         }
         // 返回结果
         return value;
+    }
+
+    private String convertFailureMessage(Metric metric) {
+        return StringUtils.remove(metric.getFailureMessage(), "\n");
     }
 
     public void completeReport(Metric metric) {
