@@ -20,6 +20,7 @@ import org.apache.jmeter.report.processor.graph.AbstractOverTimeGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.CodesPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
+import org.apache.jmeter.report.processor.graph.impl.TransactionsPerSecondGraphConsumer;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
 import org.springframework.batch.item.ExecutionContext;
@@ -57,6 +58,10 @@ public class ResultDataParse {
         hitsPerSecondGraphConsumer.initialize();
         consumerList.add(hitsPerSecondGraphConsumer);
 
+        TransactionsPerSecondGraphConsumer transactionsPerSecondGraphConsumer = new TransactionsPerSecondGraphConsumer();
+        transactionsPerSecondGraphConsumer.setGranularity(granularity);
+        transactionsPerSecondGraphConsumer.initialize();
+        consumerList.add(transactionsPerSecondGraphConsumer);
 
         ResponseTimeOverTimeGraphConsumer responseTimeOverTimeGraphConsumer = new ResponseTimeOverTimeGraphConsumer();
         responseTimeOverTimeGraphConsumer.setGranularity(granularity);
