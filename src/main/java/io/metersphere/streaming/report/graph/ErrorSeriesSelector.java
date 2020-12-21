@@ -36,6 +36,6 @@ public class ErrorSeriesSelector extends AbstractSeriesSelector {
                 }
             }
         }
-        return key;
+        return StringEscapeUtils.unescapeJava(key);
     }
 }
