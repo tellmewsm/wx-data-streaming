@@ -8,6 +8,7 @@ import io.metersphere.streaming.report.graph.consumer.DistributedActiveThreadsGr
 import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
+import org.apache.jmeter.report.processor.graph.impl.TransactionsPerSecondGraphConsumer;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -45,6 +46,12 @@ public class OverviewReport extends AbstractReport {
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);
 
+        SampleContext transactionsDataMap = sampleContextMap.get(TransactionsPerSecondGraphConsumer.class.getSimpleName());
+        List<ChartsData> transactionsList = ResultDataParse.graphMapParsing(transactionsDataMap.getData(), "transactions", "yAxis2");
+        double transactions = transactionsList.stream().map(ChartsData::getyAxis2)
+                .mapToDouble(BigDecimal::doubleValue)
+                .average().orElse(0);
+
         SampleContext errorDataMap = sampleContextMap.get(StatisticsSummaryConsumer.class.getSimpleName());
         List<Statistics> statisticsList = ResultDataParse.summaryMapParsing(errorDataMap.getData(), Statistics.class);
         double allSamples = statisticsList.stream().map(item -> Double.parseDouble(item.getSamples())).mapToDouble(Double::doubleValue).sum();
@@ -68,6 +75,7 @@ public class OverviewReport extends AbstractReport {
         TestOverview testOverview = new TestOverview();
         testOverview.setMaxUsers(String.valueOf(maxUser.get()));
         testOverview.setAvgThroughput(decimalFormat.format(hits));
+        testOverview.setAvgTransactions(decimalFormat.format(transactions));
         testOverview.setErrors(decimalFormat.format(Double.valueOf(error)));
         testOverview.setAvgResponseTime(responseTimeFormat.format(responseTime / 1000));
         testOverview.setResponseTime90(responseTimeFormat.format(avgTp90 / 1000));
