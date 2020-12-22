@@ -8,7 +8,6 @@ import io.metersphere.streaming.report.graph.consumer.DistributedActiveThreadsGr
 import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
-import org.apache.jmeter.report.processor.graph.impl.TransactionsPerSecondGraphConsumer;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -46,20 +45,19 @@ public class OverviewReport extends AbstractReport {
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);
 
-        SampleContext transactionsDataMap = sampleContextMap.get(TransactionsPerSecondGraphConsumer.class.getSimpleName());
-        List<ChartsData> transactionsList = ResultDataParse.graphMapParsing(transactionsDataMap.getData(), "transactions", "yAxis2");
-        double transactions = transactionsList.stream().map(ChartsData::getyAxis2)
-                .mapToDouble(BigDecimal::doubleValue)
-                .average().orElse(0);
-
         SampleContext errorDataMap = sampleContextMap.get(StatisticsSummaryConsumer.class.getSimpleName());
         List<Statistics> statisticsList = ResultDataParse.summaryMapParsing(errorDataMap.getData(), Statistics.class);
         double allSamples = statisticsList.stream().map(item -> Double.parseDouble(item.getSamples())).mapToDouble(Double::doubleValue).sum();
 
         double avgTp90 = statisticsList.stream().map(item -> Double.parseDouble(item.getTp90()) * Double.parseDouble(item.getSamples()))
                 .mapToDouble(Double::doubleValue).sum() / allSamples;
+
         double responseTime = statisticsList.stream().map(item -> Double.parseDouble(item.getAverage()) * Double.parseDouble(item.getSamples()))
                 .mapToDouble(Double::doubleValue).sum() / allSamples;
+
+        double transactions = statisticsList.stream().map(item -> Double.parseDouble(item.getTransactions()) * Double.parseDouble(item.getSamples()))
+                .mapToDouble(Double::doubleValue).sum() / allSamples;
+
 
         double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived())).mapToDouble(Double::doubleValue).average().orElse(0);
 
