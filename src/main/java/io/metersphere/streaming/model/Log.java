@@ -8,5 +8,6 @@ import lombok.Data;
 public class Log {
     private String reportId;
     private String resourceId;
+    private int resourceIndex;
     private String content;
 }

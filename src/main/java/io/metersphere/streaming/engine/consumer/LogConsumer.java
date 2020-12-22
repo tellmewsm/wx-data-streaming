@@ -41,6 +41,8 @@ public class LogConsumer {
         String content = StringUtils.substringAfter(value, SEPARATOR);
         String resourceId = StringUtils.substringBefore(content, SEPARATOR);
         content = StringUtils.substringAfter(content, SEPARATOR);
+        int resourceIndex = Integer.parseInt(StringUtils.substringBefore(content, SEPARATOR));
+        content = StringUtils.substringAfter(content, SEPARATOR);
         content = StringUtils.appendIfMissing(content, "\n");
 
         if (StringUtils.contains(content, "Caused by: java.lang.IllegalArgumentException: File")) {
@@ -50,7 +52,12 @@ public class LogConsumer {
             testResultService.saveErrorMessage(reportId, "Jmeter exited. Please check jmx and jars.");
         }
 
-        Log log = Log.builder().reportId(reportId).resourceId(resourceId).content(content).build();
+        Log log = Log.builder()
+                .reportId(reportId)
+                .resourceId(resourceId)
+                .resourceIndex(resourceIndex)
+                .content(content)
+                .build();
         logQueue.put(log);
     }
 
@@ -104,6 +111,7 @@ public class LogConsumer {
             String[] ids = StringUtils.split(groupKey, "|");
             String reportId = ids[0];
             String resourceId = ids[1];
+            int resourceIndex = Integer.parseInt(ids[2]);
             StringBuilder content = new StringBuilder();
             for (Log log : logs) {
                 content.append(log.getContent());
@@ -112,6 +120,7 @@ public class LogConsumer {
                     .reportId(reportId)
                     .resourceId(resourceId)
                     .content(content.toString())
+                    .resourceIndex(resourceIndex)
                     .build();
             logResultService.savePartContent(log);
         });
@@ -119,6 +128,6 @@ public class LogConsumer {
     }
 
     private String fetchGroupKey(Log log) {
-        return StringUtils.joinWith("|", log.getReportId(), log.getResourceId());
+        return StringUtils.joinWith("|", log.getReportId(), log.getResourceId(), log.getResourceIndex());
     }
 }

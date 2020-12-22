@@ -23,7 +23,7 @@ public class LogResultService {
         LoadTestReportLog record = new LoadTestReportLog();
         record.setId(UUID.randomUUID().toString());
         record.setReportId(log.getReportId());
-        record.setResourceId(log.getResourceId());
+        record.setResourceId(log.getResourceId() + "_" + log.getResourceIndex());
         record.setPart(part + 1);
         record.setContent(log.getContent());
         loadTestReportLogMapper.insert(record);
