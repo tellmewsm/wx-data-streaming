@@ -16,14 +16,15 @@ public class LogResultService {
 
 
     public void savePartContent(Log log) {
+        String resourceId = log.getResourceId() + "_" + log.getResourceIndex();
         LoadTestReportLogExample example = new LoadTestReportLogExample();
-        example.createCriteria().andReportIdEqualTo(log.getReportId()).andResourceIdEqualTo(log.getResourceId());
+        example.createCriteria().andReportIdEqualTo(log.getReportId()).andResourceIdEqualTo(resourceId);
         long part = loadTestReportLogMapper.countByExample(example);
         // 保存日志内容
         LoadTestReportLog record = new LoadTestReportLog();
         record.setId(UUID.randomUUID().toString());
         record.setReportId(log.getReportId());
-        record.setResourceId(log.getResourceId() + "_" + log.getResourceIndex());
+        record.setResourceId(resourceId);
         record.setPart(part + 1);
         record.setContent(log.getContent());
         loadTestReportLogMapper.insert(record);

@@ -51,8 +51,13 @@ public class OverviewReport extends AbstractReport {
 
         double avgTp90 = statisticsList.stream().map(item -> Double.parseDouble(item.getTp90()) * Double.parseDouble(item.getSamples()))
                 .mapToDouble(Double::doubleValue).sum() / allSamples;
+
         double responseTime = statisticsList.stream().map(item -> Double.parseDouble(item.getAverage()) * Double.parseDouble(item.getSamples()))
                 .mapToDouble(Double::doubleValue).sum() / allSamples;
+
+        double transactions = statisticsList.stream().map(item -> Double.parseDouble(item.getTransactions()) * Double.parseDouble(item.getSamples()))
+                .mapToDouble(Double::doubleValue).sum() / allSamples;
+
 
         double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived())).mapToDouble(Double::doubleValue).average().orElse(0);
 
@@ -68,6 +73,7 @@ public class OverviewReport extends AbstractReport {
         TestOverview testOverview = new TestOverview();
         testOverview.setMaxUsers(String.valueOf(maxUser.get()));
         testOverview.setAvgThroughput(decimalFormat.format(hits));
+        testOverview.setAvgTransactions(decimalFormat.format(transactions));
         testOverview.setErrors(decimalFormat.format(Double.valueOf(error)));
         testOverview.setAvgResponseTime(responseTimeFormat.format(responseTime / 1000));
         testOverview.setResponseTime90(responseTimeFormat.format(avgTp90 / 1000));
