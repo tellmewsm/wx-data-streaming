@@ -78,7 +78,9 @@ public class ResultDataParse {
         errorsGraphConsumer.initialize();
         consumerList.add(errorsGraphConsumer);
 
-        consumerList.add(new StatisticsSummaryConsumer());
+        StatisticsSummaryConsumer statisticsSummaryConsumer = new StatisticsSummaryConsumer();
+        statisticsSummaryConsumer.setHasOverallResult(true);
+        consumerList.add(statisticsSummaryConsumer);
         consumerList.add(new RequestsSummaryConsumer());
         consumerList.add(new ErrorsSummaryConsumer());
         consumerList.add(new Top5ErrorsBySamplerConsumer());
@@ -100,31 +102,42 @@ public class ResultDataParse {
                 for (int i = 0; i < items.getSize(); i++) {
                     MapResultData resultData = (MapResultData) items.get(i);
                     ListResultData data = (ListResultData) resultData.getResult("data");
-                    int size = data.getSize();
-                    String[] strArray = new String[size];
-                    if (size > 0) {
-                        T t = null;
-                        for (int j = 0; j < size; j++) {
-                            ValueResultData valueResultData = (ValueResultData) data.get(j);
-                            Object value = valueResultData.getValue();
-                            if (value == null) {
-                                strArray[j] = "";
-                            } else {
-                                String input = value.toString();
-                                // unicode 转义
-                                strArray[j] = StringEscapeUtils.unescapeJava(input);
-                            }
-                        }
-
-                        try {
-                            t = setParam(clazz, strArray);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        list.add(t);
-                    }
+                    list.addAll(getData(clazz, data));
                 }
             }
+            MapResultData overall = (MapResultData) mapResultData.getResult("overall");
+            if (overall != null) {
+                ListResultData overallData = (ListResultData) overall.getResult("data");
+                list.addAll(getData(clazz, overallData));
+            }
+        }
+        return list;
+    }
+
+    private static <T> List<T> getData(Class<T> clazz, ListResultData data) {
+        List<T> list = new ArrayList<>();
+        int size = data.getSize();
+        String[] strArray = new String[size];
+        if (size > 0) {
+            T t = null;
+            for (int j = 0; j < size; j++) {
+                ValueResultData valueResultData = (ValueResultData) data.get(j);
+                Object value = valueResultData.getValue();
+                if (value == null) {
+                    strArray[j] = "";
+                } else {
+                    String input = value.toString();
+                    // unicode 转义
+                    strArray[j] = StringEscapeUtils.unescapeJava(input);
+                }
+            }
+
+            try {
+                t = setParam(clazz, strArray);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            list.add(t);
         }
         return list;
     }

@@ -6,6 +6,7 @@ import io.metersphere.streaming.report.base.Statistics;
 import io.metersphere.streaming.report.base.TestOverview;
 import io.metersphere.streaming.report.graph.consumer.DistributedActiveThreadsGraphConsumer;
 import io.metersphere.streaming.report.parse.ResultDataParse;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jmeter.report.processor.*;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 
@@ -29,6 +30,8 @@ public class OverviewReport extends AbstractReport {
 
     @Override
     public void execute() {
+        TestOverview testOverview = new TestOverview();
+
         SampleContext activeDataMap = sampleContextMap.get(DistributedActiveThreadsGraphConsumer.class.getSimpleName());
         List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap.getData(), "users", "yAxis");
         Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getGroupName));
@@ -47,19 +50,23 @@ public class OverviewReport extends AbstractReport {
 
         SampleContext errorDataMap = sampleContextMap.get(StatisticsSummaryConsumer.class.getSimpleName());
         List<Statistics> statisticsList = ResultDataParse.summaryMapParsing(errorDataMap.getData(), Statistics.class);
-        double allSamples = statisticsList.stream().map(item -> Double.parseDouble(item.getSamples())).mapToDouble(Double::doubleValue).sum();
 
-        double avgTp90 = statisticsList.stream().map(item -> Double.parseDouble(item.getTp90()) * Double.parseDouble(item.getSamples()))
-                .mapToDouble(Double::doubleValue).sum() / allSamples;
+        if (CollectionUtils.isNotEmpty(statisticsList)) {
+            int size = statisticsList.size();
+            Statistics statistics = statisticsList.get(size - 1);
+            if ("[res_key=reportgenerator_summary_total]".equals(statistics.getLabel())) {
+                String transactions = statistics.getTransactions();
+                String tp90 = statistics.getTp90();
+                String responseTime = statistics.getAverage();
+                String avgBandwidth = statistics.getReceived();
+                //
+                testOverview.setAvgTransactions(decimalFormat.format(Double.parseDouble(transactions)));
+                testOverview.setAvgResponseTime(responseTimeFormat.format(Double.parseDouble(responseTime) / 1000));
+                testOverview.setResponseTime90(responseTimeFormat.format(Double.parseDouble(tp90) / 1000));
+                testOverview.setAvgBandwidth(decimalFormat.format(Double.parseDouble(avgBandwidth)));
+            }
+        }
 
-        double responseTime = statisticsList.stream().map(item -> Double.parseDouble(item.getAverage()) * Double.parseDouble(item.getSamples()))
-                .mapToDouble(Double::doubleValue).sum() / allSamples;
-
-        double transactions = statisticsList.stream().map(item -> Double.parseDouble(item.getTransactions()) * Double.parseDouble(item.getSamples()))
-                .mapToDouble(Double::doubleValue).sum() / allSamples;
-
-
-        double avgBandwidth = statisticsList.stream().map(item -> Double.parseDouble(item.getReceived())).mapToDouble(Double::doubleValue).average().orElse(0);
 
         SampleContext sampleDataMap = sampleContextMap.get(RequestsSummaryConsumer.class.getSimpleName());
         Map<String, Object> data = sampleDataMap.getData();
@@ -70,14 +77,10 @@ public class OverviewReport extends AbstractReport {
             error = ((ValueResultData) koPercent).getValue().toString();
         }
 
-        TestOverview testOverview = new TestOverview();
         testOverview.setMaxUsers(String.valueOf(maxUser.get()));
         testOverview.setAvgThroughput(decimalFormat.format(hits));
-        testOverview.setAvgTransactions(decimalFormat.format(transactions));
+
         testOverview.setErrors(decimalFormat.format(Double.valueOf(error)));
-        testOverview.setAvgResponseTime(responseTimeFormat.format(responseTime / 1000));
-        testOverview.setResponseTime90(responseTimeFormat.format(avgTp90 / 1000));
-        testOverview.setAvgBandwidth(decimalFormat.format(avgBandwidth));
 
         saveResult(reportId, testOverview);
     }
