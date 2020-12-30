@@ -23,7 +23,6 @@ public class LoadChartReport extends AbstractReport {
         resultList.forEach(cs -> {
             DecimalFormat decimalFormat = new DecimalFormat("0");
             cs.setyAxis(new BigDecimal(decimalFormat.format(cs.getyAxis())));
-            System.out.println(cs.getyAxis());
         });
         List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsMap.getData(), "transactions", "yAxis2");
         resultList.addAll(hitsList);
