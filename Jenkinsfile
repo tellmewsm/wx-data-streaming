@@ -6,7 +6,7 @@ pipeline {
     }
     options { quietPeriod(600) }
     environment { 
-        IMAGE_NAME = 'metersphere'
+        IMAGE_NAME = 'ms-data-streaming'
         IMAGE_PREFIX = 'registry.cn-qingdao.aliyuncs.com/metersphere'
     }
     stages {
