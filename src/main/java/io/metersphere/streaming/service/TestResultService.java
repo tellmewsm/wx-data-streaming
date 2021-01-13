@@ -1,5 +1,6 @@
 package io.metersphere.streaming.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.base.domain.*;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
@@ -9,6 +10,7 @@ import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.engine.consumer.DataConsumer;
+import io.metersphere.streaming.engine.producer.LoadTestProducer;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.report.ReportGeneratorFactory;
 import io.metersphere.streaming.report.impl.AbstractReport;
@@ -43,6 +45,10 @@ public class TestResultService {
     private ExtLoadTestMapper extLoadTestMapper;
     @Resource
     private FileService fileService;
+    @Resource
+    private LoadTestProducer loadTestProducer;
+    @Resource
+    private ObjectMapper objectMapper;
 
     ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
     ExecutorService reportThreadPool = Executors.newFixedThreadPool(30);
@@ -171,6 +177,9 @@ public class TestResultService {
         report.setUpdateTime(System.currentTimeMillis());
         report.setStatus(TestStatus.Completed.name());
         loadTestReportMapper.updateByPrimaryKeySelective(report);
+        // 发送成功通知
+        LoadTestReportWithBLOBs loadTestReport = loadTestReportMapper.selectByPrimaryKey(reportId);
+        loadTestProducer.sendMessage(loadTestMapper.selectByPrimaryKey(loadTestReport.getTestId()));
     }
 
     public void generateReport(String reportId, boolean isForce) {
