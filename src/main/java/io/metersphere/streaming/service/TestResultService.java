@@ -179,7 +179,7 @@ public class TestResultService {
         loadTestReportMapper.updateByPrimaryKeySelective(report);
         // 发送成功通知
         LoadTestReportWithBLOBs loadTestReport = loadTestReportMapper.selectByPrimaryKey(reportId);
-        loadTestProducer.sendMessage(loadTestMapper.selectByPrimaryKey(loadTestReport.getTestId()));
+        loadTestProducer.sendMessage(loadTestReport);
     }
 
     public void generateReport(String reportId, boolean isForce) {
