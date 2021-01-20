@@ -1,6 +1,5 @@
 package io.metersphere.streaming.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.base.domain.*;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
@@ -8,8 +7,8 @@ import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.TestStatus;
+import io.metersphere.streaming.commons.utils.CommonBeanFactory;
 import io.metersphere.streaming.commons.utils.LogUtil;
-import io.metersphere.streaming.engine.consumer.DataConsumer;
 import io.metersphere.streaming.engine.producer.LoadTestProducer;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.report.ReportGeneratorFactory;
@@ -17,20 +16,31 @@ import io.metersphere.streaming.report.impl.AbstractReport;
 import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.jmeter.report.processor.SampleContext;
+import org.mybatis.spring.batch.MyBatisCursorItemReader;
+import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
 public class TestResultService {
+    public static final String HEADERS = "timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect";
+
     @Resource
     private LoadTestReportMapper loadTestReportMapper;
     @Resource
@@ -47,8 +57,12 @@ public class TestResultService {
     private FileService fileService;
     @Resource
     private LoadTestProducer loadTestProducer;
-    @Resource
-    private ObjectMapper objectMapper;
+
+    public static final String TEMP_DIRECTORY_PATH = FileUtils.getTempDirectoryPath();
+
+    static {
+        LogUtil.info("Temp dir: " + TEMP_DIRECTORY_PATH);
+    }
 
     ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
     ExecutorService reportThreadPool = Executors.newFixedThreadPool(30);
@@ -133,22 +147,58 @@ public class TestResultService {
         loadTest.setStatus(TestStatus.Completed.name());
         loadTestMapper.updateByPrimaryKeySelective(loadTest);
         LogUtil.info("test completed: " + report.getTestId());
-        // 保存jtl
-        saveJtlFile(metric);
         // 确保计算报告完全执行
         completeThreadPool.execute(() -> generateReportComplete(report.getId()));
     }
 
-    private void saveJtlFile(Metric metric) {
-        String filename = metric.getReportId() + ".jtl";
+    private void saveJtlFile(String reportId) {
+        SqlSessionFactory sqlSessionFactory = CommonBeanFactory.getBean(SqlSessionFactory.class);
+        MyBatisCursorItemReader<LoadTestReportDetail> myBatisCursorItemReader = new MyBatisCursorItemReaderBuilder<LoadTestReportDetail>()
+                .sqlSessionFactory(sqlSessionFactory)
+                // 设置queryId
+                .queryId("io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper.fetchTestReportDetails")
+                .build();
+        String filename = reportId + ".jtl";
+        try (
+                FileWriter fw = new FileWriter(TEMP_DIRECTORY_PATH + File.separator + filename, true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                PrintWriter out = new PrintWriter(bw)
+        ) {
+            // 写入表头
+            out.println(HEADERS);
+            Map<String, Object> param = new HashMap<>();
+            param.put("reportId", reportId);
+            myBatisCursorItemReader.setParameterValues(param);
+            myBatisCursorItemReader.open(new ExecutionContext());
+            LoadTestReportDetail loadTestReportDetail;
+            while ((loadTestReportDetail = myBatisCursorItemReader.read()) != null) {
+                //
+                String content = loadTestReportDetail.getContent();
+                StringTokenizer tokenizer = new StringTokenizer(content, "\n");
+                while (tokenizer.hasMoreTokens()) {
+                    String line = tokenizer.nextToken();
+                    out.println(line);
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.error(e);
+        } finally {
+            myBatisCursorItemReader.close();
+        }
+
         try {
-            File file = new File(DataConsumer.TEMP_DIRECTORY_PATH + File.separator + filename);
+            File file = new File(TEMP_DIRECTORY_PATH + File.separator + filename);
             FileMetadata fileMetadata = fileService.saveFile(file);
             LoadTestReportWithBLOBs loadTestReportWithBLOBs = new LoadTestReportWithBLOBs();
             loadTestReportWithBLOBs.setFileId(fileMetadata.getId());
-            loadTestReportWithBLOBs.setId(metric.getReportId());
+            loadTestReportWithBLOBs.setId(reportId);
             loadTestReportMapper.updateByPrimaryKeySelective(loadTestReportWithBLOBs);
             FileUtils.forceDelete(file);
+
+            // 清理文件
+            LoadTestReportDetailExample example = new LoadTestReportDetailExample();
+            example.createCriteria().andReportIdEqualTo(reportId);
+            loadTestReportDetailMapper.deleteByExample(example);
         } catch (Exception e) {
             LogUtil.error(e);
         }
@@ -170,6 +220,8 @@ public class TestResultService {
         loadTestReportMapper.updateByPrimaryKeySelective(report);
         // 强制执行一次生成报告
         generateReport(reportId, true);
+        // 保存jtl
+        saveJtlFile(reportId);
         // 标记结束
         testResultSaveService.saveReportCompletedStatus(reportId);
 
