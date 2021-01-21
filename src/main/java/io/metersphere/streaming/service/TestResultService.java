@@ -32,7 +32,6 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -172,13 +171,8 @@ public class TestResultService {
             myBatisCursorItemReader.open(new ExecutionContext());
             LoadTestReportDetail loadTestReportDetail;
             while ((loadTestReportDetail = myBatisCursorItemReader.read()) != null) {
-                //
                 String content = loadTestReportDetail.getContent();
-                StringTokenizer tokenizer = new StringTokenizer(content, "\n");
-                while (tokenizer.hasMoreTokens()) {
-                    String line = tokenizer.nextToken();
-                    out.println(line);
-                }
+                out.print(content);
             }
         } catch (Exception e) {
             LogUtil.error(e);
