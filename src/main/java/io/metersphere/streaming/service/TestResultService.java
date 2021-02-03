@@ -233,6 +233,12 @@ public class TestResultService {
             LogUtil.info("report generator is running.");
             return;
         }
+        LoadTestReportDetailExample example = new LoadTestReportDetailExample();
+        example.createCriteria().andReportIdEqualTo(reportId);
+        // 防止中间文件删除之后又执行生成报告导致报错的问题
+        if (loadTestReportDetailMapper.countByExample(example) < 2) {
+            return;
+        }
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
         LogUtil.info("report generators size: {}", reportGenerators.size());
         CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
