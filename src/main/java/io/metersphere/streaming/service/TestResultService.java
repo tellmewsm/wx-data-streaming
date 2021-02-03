@@ -119,7 +119,7 @@ public class TestResultService {
     private String warp(String value) {
         // 1 先处理是否包含双引号
         if (StringUtils.contains(value, "\"")) {
-            value = StringUtils.replace(value, "\"", "\"\"");
+            value = StringUtils.wrapIfMissing(StringUtils.replace(value, "\"", "\"\""), "\"");
         }
         // 2 然后处理是否包含逗号、 \n
         if (StringUtils.contains(value, ",") || StringUtils.contains(value, "\n")) {
