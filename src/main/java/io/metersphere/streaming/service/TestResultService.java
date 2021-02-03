@@ -151,6 +151,11 @@ public class TestResultService {
     }
 
     private void saveJtlFile(String reportId) {
+        LoadTestReportDetailExample example1 = new LoadTestReportDetailExample();
+        example1.createCriteria().andReportIdEqualTo(reportId);
+        if (loadTestReportDetailMapper.countByExample(example1) < 2) {
+            return;
+        }
         SqlSessionFactory sqlSessionFactory = CommonBeanFactory.getBean(SqlSessionFactory.class);
         MyBatisCursorItemReader<LoadTestReportDetail> myBatisCursorItemReader = new MyBatisCursorItemReaderBuilder<LoadTestReportDetail>()
                 .sqlSessionFactory(sqlSessionFactory)
