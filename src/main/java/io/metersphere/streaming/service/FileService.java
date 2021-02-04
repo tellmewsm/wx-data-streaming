@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.util.UUID;
 
 @Service
 public class FileService {
@@ -18,15 +17,17 @@ public class FileService {
     @Resource
     private FileContentMapper fileContentMapper;
 
-    public FileMetadata saveFile(File file) {
+    public FileMetadata saveFile(File file, String reportId) {
         final FileMetadata fileMetadata = new FileMetadata();
-        fileMetadata.setId(UUID.randomUUID().toString());
+        fileMetadata.setId(reportId);
         fileMetadata.setName(file.getName());
         fileMetadata.setSize(FileUtils.sizeOf(file));
         fileMetadata.setCreateTime(System.currentTimeMillis());
         fileMetadata.setUpdateTime(System.currentTimeMillis());
         fileMetadata.setType("JTL");
-        fileMetadataMapper.insert(fileMetadata);
+        if (fileMetadataMapper.updateByPrimaryKeySelective(fileMetadata) == 0) {
+            fileMetadataMapper.insert(fileMetadata);
+        }
 
         FileContent fileContent = new FileContent();
         fileContent.setFileId(fileMetadata.getId());
@@ -35,8 +36,9 @@ public class FileService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        fileContentMapper.insert(fileContent);
+        if (fileContentMapper.updateByPrimaryKeySelective(fileContent) == 0) {
+            fileContentMapper.insert(fileContent);
+        }
 
         return fileMetadata;
     }
