@@ -187,17 +187,12 @@ public class TestResultService {
 
         try {
             File file = new File(TEMP_DIRECTORY_PATH + File.separator + filename);
-            FileMetadata fileMetadata = fileService.saveFile(file);
+            FileMetadata fileMetadata = fileService.saveFile(file, reportId);
             LoadTestReportWithBLOBs loadTestReportWithBLOBs = new LoadTestReportWithBLOBs();
             loadTestReportWithBLOBs.setFileId(fileMetadata.getId());
             loadTestReportWithBLOBs.setId(reportId);
             loadTestReportMapper.updateByPrimaryKeySelective(loadTestReportWithBLOBs);
             FileUtils.forceDelete(file);
-
-            // 清理文件
-            LoadTestReportDetailExample example = new LoadTestReportDetailExample();
-            example.createCriteria().andReportIdEqualTo(reportId);
-            loadTestReportDetailMapper.deleteByExample(example);
         } catch (Exception e) {
             LogUtil.error(e);
         }
