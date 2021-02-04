@@ -15,6 +15,7 @@ import io.metersphere.streaming.report.ReportGeneratorFactory;
 import io.metersphere.streaming.report.impl.AbstractReport;
 import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.jmeter.report.processor.SampleContext;
@@ -162,7 +163,7 @@ public class TestResultService {
                 // 设置queryId
                 .queryId("io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper.fetchTestReportDetails")
                 .build();
-        String filename = reportId + ".jtl";
+        String filename = reportId + "_" + RandomStringUtils.random(5) + ".jtl";
         try (
                 FileWriter fw = new FileWriter(TEMP_DIRECTORY_PATH + File.separator + filename, true);
                 BufferedWriter bw = new BufferedWriter(fw);
