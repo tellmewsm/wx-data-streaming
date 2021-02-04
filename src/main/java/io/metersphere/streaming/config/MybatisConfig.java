@@ -1,5 +1,6 @@
 package io.metersphere.streaming.config;
 
+import com.github.pagehelper.PageInterceptor;
 import io.metersphere.streaming.base.domain.FileContent;
 import io.metersphere.streaming.commons.MybatisInterceptor;
 import io.metersphere.streaming.commons.MybatisInterceptorConfig;
@@ -12,11 +13,26 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Configuration
 @MapperScan(basePackages = "io.metersphere.streaming.base.mapper")
 @EnableTransactionManagement
 public class MybatisConfig {
+    @Bean
+    @ConditionalOnMissingBean
+    public PageInterceptor pageInterceptor() {
+        PageInterceptor pageInterceptor = new PageInterceptor();
+        Properties properties = new Properties();
+        properties.setProperty("helperDialect", "mysql");
+        properties.setProperty("rowBoundsWithCount", "true");
+        properties.setProperty("reasonable", "true");
+        properties.setProperty("offsetAsPageNum", "true");
+        properties.setProperty("pageSizeZero", "true");
+        pageInterceptor.setProperties(properties);
+        return pageInterceptor;
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public MybatisInterceptor dbInterceptor() {
