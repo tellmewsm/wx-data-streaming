@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.service.TestResultService;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -37,12 +36,6 @@ public class DataConsumer {
         Metric metric = objectMapper.readValue(record.value(), Metric.class);
         if (metric.getTimestamp().getTime() == 0) {
             // dubbo sample 有时候会上传一个timestamp为0的结果，忽略
-            return;
-        }
-        if (StringUtils.contains(metric.getThreadName(), "tearDown Thread Group")) {
-            // 收到结束信息时 save
-            save();
-            testResultService.completeReport(metric);
             return;
         }
         metricQueue.put(metric);

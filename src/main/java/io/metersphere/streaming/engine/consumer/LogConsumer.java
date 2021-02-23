@@ -2,6 +2,7 @@ package io.metersphere.streaming.engine.consumer;
 
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Log;
+import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.service.LogResultService;
 import io.metersphere.streaming.service.TestResultService;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,8 @@ public class LogConsumer {
     private LogResultService logResultService;
     @Resource
     private TestResultService testResultService;
+    @Resource
+    private DataConsumer dataConsumer;
     private final BlockingQueue<Log> logQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
     private final CopyOnWriteArrayList<Log> logs = new CopyOnWriteArrayList<>();
 
@@ -50,6 +53,13 @@ public class LogConsumer {
         }
         if (StringUtils.contains(content, "Error in NonGUIDriver java.lang.IllegalArgumentException: Problem loading XML from")) {
             testResultService.saveErrorMessage(reportId, "Jmeter exited. Please check jmx and jars.");
+        }
+        // 测试结束
+        if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
+            dataConsumer.save();
+            Metric metric = new Metric();
+            metric.setReportId(reportId);
+            testResultService.completeReport(metric);
         }
 
         Log log = Log.builder()
