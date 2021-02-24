@@ -4,6 +4,7 @@ import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Log;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.service.LogResultService;
+import io.metersphere.streaming.service.MetricDataService;
 import io.metersphere.streaming.service.TestResultService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -31,7 +32,7 @@ public class LogConsumer {
     @Resource
     private TestResultService testResultService;
     @Resource
-    private DataConsumer dataConsumer;
+    private MetricDataService metricDataService;
     private final BlockingQueue<Log> logQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
     private final CopyOnWriteArrayList<Log> logs = new CopyOnWriteArrayList<>();
 
@@ -56,7 +57,7 @@ public class LogConsumer {
         }
         // 测试结束
         if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
-            dataConsumer.save();
+            metricDataService.save();
             Metric metric = new Metric();
             metric.setReportId(reportId);
             testResultService.completeReport(metric);
