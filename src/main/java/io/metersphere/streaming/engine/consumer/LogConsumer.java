@@ -62,6 +62,10 @@ public class LogConsumer {
             metric.setReportId(reportId);
             testResultService.completeReport(metric);
         }
+        // 手动停止的测试
+        if (StringUtils.equals("none", resourceId)) {
+            return;
+        }
 
         Log log = Log.builder()
                 .reportId(reportId)
