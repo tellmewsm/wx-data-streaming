@@ -127,8 +127,8 @@ public class ResultDataParse {
                     strArray[j] = "";
                 } else {
                     String input = value.toString();
-                    // unicode 转义
-                    strArray[j] = StringEscapeUtils.unescapeJava(input);
+                    // unicode 转义,
+                    strArray[j] = StringEscapeUtils.unescapeHtml4(StringEscapeUtils.unescapeJava(input));
                 }
             }
 
