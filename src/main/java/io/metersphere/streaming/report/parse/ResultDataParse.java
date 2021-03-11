@@ -5,7 +5,6 @@ import io.metersphere.streaming.commons.utils.CSVUtils;
 import io.metersphere.streaming.commons.utils.CommonBeanFactory;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.commons.utils.MsJMeterUtils;
-import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.report.base.ChartsData;
 import io.metersphere.streaming.report.graph.consumer.DistributedActiveThreadsGraphConsumer;
 import io.metersphere.streaming.report.graph.consumer.ErrorsGraphConsumer;
@@ -16,7 +15,6 @@ import org.apache.jmeter.report.core.Sample;
 import org.apache.jmeter.report.core.SampleMetadata;
 import org.apache.jmeter.report.dashboard.JsonizerVisitor;
 import org.apache.jmeter.report.processor.*;
-import org.apache.jmeter.report.processor.graph.AbstractOverTimeGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.CodesPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
@@ -43,10 +41,8 @@ public class ResultDataParse {
     private static final String TIME_PATTERN = "MM-dd HH:mm:ss";
 
 
-    public static List<AbstractSampleConsumer> initConsumerList() {
+    public static List<AbstractSampleConsumer> initConsumerList(Integer granularity) {
         List<AbstractSampleConsumer> consumerList = new ArrayList<>();
-        JmeterReportProperties jmeterReportProperties = CommonBeanFactory.getBean(JmeterReportProperties.class);
-        Integer granularity = jmeterReportProperties.getGranularity();
 
         DistributedActiveThreadsGraphConsumer distributedActiveThreadsGraphConsumer = new DistributedActiveThreadsGraphConsumer();
         distributedActiveThreadsGraphConsumer.setGranularity(granularity);
@@ -200,66 +196,6 @@ public class ResultDataParse {
             }
         }
         return list;
-    }
-
-    public static Map<String, Object> getGraphDataMap(String reportId, AbstractOverTimeGraphConsumer timeGraphConsumer) {
-        JmeterReportProperties jmeterReportProperties = CommonBeanFactory.getBean(JmeterReportProperties.class);
-        timeGraphConsumer.setGranularity(jmeterReportProperties.getGranularity());
-        timeGraphConsumer.initialize();
-        SampleContext sampleContext = initJMeterConsumer(reportId, timeGraphConsumer);
-        return sampleContext.getData();
-    }
-
-    public static Map<String, Object> getSummaryDataMap(String reportId, AbstractSummaryConsumer<?> summaryConsumer) {
-        SampleContext sampleContext = initJMeterConsumer(reportId, summaryConsumer);
-        return sampleContext.getData();
-    }
-
-    public static Map<String, Object> getSampleDataMap(String reportId, AbstractSampleConsumer sampleConsumer) {
-        SampleContext sampleContext = initJMeterConsumer(reportId, sampleConsumer);
-        return sampleContext.getData();
-    }
-
-    private static SampleContext initJMeterConsumer(String reportId, AbstractSampleConsumer abstractSampleConsumer) {
-        int row = 0;
-        // 使用反射获取properties
-        MsJMeterUtils.loadJMeterProperties("jmeter.properties");
-        SampleMetadata sampleMetaData = createTestMetaData();
-        SampleContext sampleContext = new SampleContext();
-        abstractSampleConsumer.setSampleContext(sampleContext);
-        abstractSampleConsumer.startConsuming();
-
-        SqlSessionFactory sqlSessionFactory = CommonBeanFactory.getBean(SqlSessionFactory.class);
-        MyBatisCursorItemReader<LoadTestReportDetail> myBatisCursorItemReader = new MyBatisCursorItemReaderBuilder<LoadTestReportDetail>()
-                .sqlSessionFactory(sqlSessionFactory)
-                // 设置queryId
-                .queryId("io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper.fetchTestReportDetails")
-                .build();
-        try {
-            Map<String, Object> param = new HashMap<>();
-            param.put("reportId", reportId);
-            myBatisCursorItemReader.setParameterValues(param);
-            myBatisCursorItemReader.open(new ExecutionContext());
-            LoadTestReportDetail loadTestReportDetail;
-            while ((loadTestReportDetail = myBatisCursorItemReader.read()) != null) {
-                //
-                String content = loadTestReportDetail.getContent();
-                StringTokenizer tokenizer = new StringTokenizer(content, "\n");
-                while (tokenizer.hasMoreTokens()) {
-                    String line = tokenizer.nextToken();
-                    String[] data = line.split(",", -1);
-                    Sample sample = new Sample(row++, sampleMetaData, data);
-                    abstractSampleConsumer.consume(sample, 0);
-                }
-            }
-        } catch (Exception e) {
-            LogUtil.error(e);
-        } finally {
-            myBatisCursorItemReader.close();
-        }
-
-        abstractSampleConsumer.stopConsuming();
-        return sampleContext;
     }
 
     public static Map<String, SampleContext> initJMeterConsumer(String reportId, List<AbstractSampleConsumer> consumerList) {

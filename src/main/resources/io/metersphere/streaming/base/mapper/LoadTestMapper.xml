@@ -10,11 +10,12 @@
     <result column="update_time" jdbcType="BIGINT" property="updateTime" />
     <result column="status" jdbcType="VARCHAR" property="status" />
     <result column="test_resource_pool_id" jdbcType="VARCHAR" property="testResourcePoolId" />
+    <result column="user_id" jdbcType="VARCHAR" property="userId" />
+    <result column="num" jdbcType="INTEGER" property="num" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="io.metersphere.streaming.base.domain.LoadTestWithBLOBs">
     <result column="load_configuration" jdbcType="LONGVARCHAR" property="loadConfiguration" />
     <result column="advanced_configuration" jdbcType="LONGVARCHAR" property="advancedConfiguration" />
-    <result column="schedule" jdbcType="LONGVARCHAR" property="schedule" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -75,10 +76,11 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, project_id, name, description, create_time, update_time, status, test_resource_pool_id
+    id, project_id, name, description, create_time, update_time, status, test_resource_pool_id, 
+    user_id, num
   </sql>
   <sql id="Blob_Column_List">
-    load_configuration, advanced_configuration, schedule
+    load_configuration, advanced_configuration
   </sql>
   <select id="selectByExampleWithBLOBs" parameterType="io.metersphere.streaming.base.domain.LoadTestExample" resultMap="ResultMapWithBLOBs">
     select
@@ -129,15 +131,15 @@
     </if>
   </delete>
   <insert id="insert" parameterType="io.metersphere.streaming.base.domain.LoadTestWithBLOBs">
-    insert into load_test (id, project_id, name, 
+    INSERT INTO load_test (id, project_id, name,
       description, create_time, update_time, 
-      status, test_resource_pool_id, load_configuration, 
-      advanced_configuration, schedule
+      status, test_resource_pool_id, user_id, 
+      num, load_configuration, advanced_configuration
       )
-    values (#{id,jdbcType=VARCHAR}, #{projectId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
+    VALUES (#{id,jdbcType=VARCHAR}, #{projectId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
       #{description,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, #{updateTime,jdbcType=BIGINT}, 
-      #{status,jdbcType=VARCHAR}, #{testResourcePoolId,jdbcType=VARCHAR}, #{loadConfiguration,jdbcType=LONGVARCHAR}, 
-      #{advancedConfiguration,jdbcType=LONGVARCHAR}, #{schedule,jdbcType=LONGVARCHAR}
+      #{status,jdbcType=VARCHAR}, #{testResourcePoolId,jdbcType=VARCHAR}, #{userId,jdbcType=VARCHAR}, 
+      #{num,jdbcType=INTEGER}, #{loadConfiguration,jdbcType=LONGVARCHAR}, #{advancedConfiguration,jdbcType=LONGVARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="io.metersphere.streaming.base.domain.LoadTestWithBLOBs">
@@ -167,14 +169,17 @@
       <if test="testResourcePoolId != null">
         test_resource_pool_id,
       </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="num != null">
+        num,
+      </if>
       <if test="loadConfiguration != null">
         load_configuration,
       </if>
       <if test="advancedConfiguration != null">
         advanced_configuration,
-      </if>
-      <if test="schedule != null">
-        schedule,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -202,14 +207,17 @@
       <if test="testResourcePoolId != null">
         #{testResourcePoolId,jdbcType=VARCHAR},
       </if>
+      <if test="userId != null">
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null">
+        #{num,jdbcType=INTEGER},
+      </if>
       <if test="loadConfiguration != null">
         #{loadConfiguration,jdbcType=LONGVARCHAR},
       </if>
       <if test="advancedConfiguration != null">
         #{advancedConfiguration,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="schedule != null">
-        #{schedule,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -246,14 +254,17 @@
       <if test="record.testResourcePoolId != null">
         test_resource_pool_id = #{record.testResourcePoolId,jdbcType=VARCHAR},
       </if>
+      <if test="record.userId != null">
+        user_id = #{record.userId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.num != null">
+        num = #{record.num,jdbcType=INTEGER},
+      </if>
       <if test="record.loadConfiguration != null">
         load_configuration = #{record.loadConfiguration,jdbcType=LONGVARCHAR},
       </if>
       <if test="record.advancedConfiguration != null">
         advanced_configuration = #{record.advancedConfiguration,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="record.schedule != null">
-        schedule = #{record.schedule,jdbcType=LONGVARCHAR},
       </if>
     </set>
     <if test="_parameter != null">
@@ -270,9 +281,10 @@
       update_time = #{record.updateTime,jdbcType=BIGINT},
       status = #{record.status,jdbcType=VARCHAR},
       test_resource_pool_id = #{record.testResourcePoolId,jdbcType=VARCHAR},
+      user_id = #{record.userId,jdbcType=VARCHAR},
+      num = #{record.num,jdbcType=INTEGER},
       load_configuration = #{record.loadConfiguration,jdbcType=LONGVARCHAR},
-      advanced_configuration = #{record.advancedConfiguration,jdbcType=LONGVARCHAR},
-      schedule = #{record.schedule,jdbcType=LONGVARCHAR}
+      advanced_configuration = #{record.advancedConfiguration,jdbcType=LONGVARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -286,7 +298,9 @@
       create_time = #{record.createTime,jdbcType=BIGINT},
       update_time = #{record.updateTime,jdbcType=BIGINT},
       status = #{record.status,jdbcType=VARCHAR},
-      test_resource_pool_id = #{record.testResourcePoolId,jdbcType=VARCHAR}
+      test_resource_pool_id = #{record.testResourcePoolId,jdbcType=VARCHAR},
+      user_id = #{record.userId,jdbcType=VARCHAR},
+      num = #{record.num,jdbcType=INTEGER}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -315,41 +329,47 @@
       <if test="testResourcePoolId != null">
         test_resource_pool_id = #{testResourcePoolId,jdbcType=VARCHAR},
       </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null">
+        num = #{num,jdbcType=INTEGER},
+      </if>
       <if test="loadConfiguration != null">
         load_configuration = #{loadConfiguration,jdbcType=LONGVARCHAR},
       </if>
       <if test="advancedConfiguration != null">
         advanced_configuration = #{advancedConfiguration,jdbcType=LONGVARCHAR},
       </if>
-      <if test="schedule != null">
-        schedule = #{schedule,jdbcType=LONGVARCHAR},
-      </if>
     </set>
     where id = #{id,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="io.metersphere.streaming.base.domain.LoadTestWithBLOBs">
-    update load_test
-    set project_id = #{projectId,jdbcType=VARCHAR},
+    UPDATE load_test
+    SET project_id = #{projectId,jdbcType=VARCHAR},
       name = #{name,jdbcType=VARCHAR},
       description = #{description,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=BIGINT},
       update_time = #{updateTime,jdbcType=BIGINT},
       status = #{status,jdbcType=VARCHAR},
       test_resource_pool_id = #{testResourcePoolId,jdbcType=VARCHAR},
+      user_id = #{userId,jdbcType=VARCHAR},
+      num = #{num,jdbcType=INTEGER},
       load_configuration = #{loadConfiguration,jdbcType=LONGVARCHAR},
-      advanced_configuration = #{advancedConfiguration,jdbcType=LONGVARCHAR},
-      schedule = #{schedule,jdbcType=LONGVARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
+      advanced_configuration = #{advancedConfiguration,jdbcType=LONGVARCHAR}
+    WHERE id = #{id,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="io.metersphere.streaming.base.domain.LoadTest">
-    update load_test
-    set project_id = #{projectId,jdbcType=VARCHAR},
+    UPDATE load_test
+    SET project_id = #{projectId,jdbcType=VARCHAR},
       name = #{name,jdbcType=VARCHAR},
       description = #{description,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=BIGINT},
       update_time = #{updateTime,jdbcType=BIGINT},
       status = #{status,jdbcType=VARCHAR},
-      test_resource_pool_id = #{testResourcePoolId,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=VARCHAR}
+      test_resource_pool_id = #{testResourcePoolId,jdbcType=VARCHAR},
+      user_id = #{userId,jdbcType=VARCHAR},
+      num = #{num,jdbcType=INTEGER}
+    WHERE id = #{id,jdbcType=VARCHAR}
   </update>
 </mapper>

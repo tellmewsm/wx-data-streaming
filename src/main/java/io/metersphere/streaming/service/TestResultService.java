@@ -1,16 +1,23 @@
 package io.metersphere.streaming.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.base.domain.*;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
+import io.metersphere.streaming.commons.constants.GranularityData;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.CommonBeanFactory;
 import io.metersphere.streaming.commons.utils.LogUtil;
+import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.engine.producer.LoadTestProducer;
+import io.metersphere.streaming.model.AdvancedConfig;
 import io.metersphere.streaming.model.Metric;
+import io.metersphere.streaming.model.PressureConfig;
 import io.metersphere.streaming.report.ReportGeneratorFactory;
 import io.metersphere.streaming.report.impl.AbstractReport;
 import io.metersphere.streaming.report.parse.ResultDataParse;
@@ -30,12 +37,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class TestResultService {
@@ -57,6 +63,8 @@ public class TestResultService {
     private FileService fileService;
     @Resource
     private LoadTestProducer loadTestProducer;
+    @Resource
+    private ObjectMapper objectMapper;
 
     public static final String TEMP_DIRECTORY_PATH = FileUtils.getTempDirectoryPath();
 
@@ -240,11 +248,13 @@ public class TestResultService {
         if (loadTestReportDetailMapper.countByExample(example) < 2) {
             return;
         }
+        // 获取聚合时间
+        Integer granularity = getGranularity(reportId);
         List<AbstractReport> reportGenerators = ReportGeneratorFactory.getReportGenerators();
         LogUtil.info("report generators size: {}", reportGenerators.size());
         CountDownLatch countDownLatch = new CountDownLatch(reportGenerators.size());
 
-        Map<String, SampleContext> sampleContextMap = ResultDataParse.initJMeterConsumer(reportId, ResultDataParse.initConsumerList());
+        Map<String, SampleContext> sampleContextMap = ResultDataParse.initJMeterConsumer(reportId, ResultDataParse.initConsumerList(granularity));
 
         reportGenerators.forEach(r -> reportThreadPool.execute(() -> {
             LogUtil.info("Report Key: " + r.getReportKey());
@@ -264,6 +274,44 @@ public class TestResultService {
         } finally {
             testResultSaveService.saveReportReadyStatus(reportId);
         }
+    }
+
+    public Integer getGranularity(String reportId) {
+        Integer granularity = CommonBeanFactory.getBean(JmeterReportProperties.class).getGranularity();
+        try {
+            LoadTestReportWithBLOBs report = loadTestReportMapper.selectByPrimaryKey(reportId);
+            LoadTestWithBLOBs loadTest = loadTestMapper.selectByPrimaryKey(report.getTestId());
+            AdvancedConfig advancedConfig = objectMapper.readValue(loadTest.getAdvancedConfiguration(), AdvancedConfig.class);
+            if (advancedConfig.getGranularity() != null) {
+                granularity = advancedConfig.getGranularity();
+            }
+            AtomicReference<Integer> maxDuration = new AtomicReference<>(0);
+            List<List<PressureConfig>> pressureConfigLists = objectMapper.readValue(loadTest.getLoadConfiguration(), new TypeReference<List<List<PressureConfig>>>() {
+            });
+            // 按照最长的执行时间来确定
+            pressureConfigLists.forEach(pcList -> {
+                Optional<Integer> maxOp = pcList.stream()
+                        .filter(pressureConfig -> StringUtils.equalsAnyIgnoreCase(pressureConfig.getKey(), "hold", "duration"))
+                        .map(pressureConfig -> (Integer) pressureConfig.getValue())
+                        .max(Comparator.naturalOrder());
+                Integer max = maxOp.orElse(0);
+                if (maxDuration.get() < max) {
+                    maxDuration.set(max);
+                }
+            });
+            Optional<GranularityData.Data> dataOptional = GranularityData.dataList.stream()
+                    .filter(data -> maxDuration.get() >= data.getStart() && maxDuration.get() <= data.getEnd())
+                    .findFirst();
+
+            if (dataOptional.isPresent()) {
+                GranularityData.Data data = dataOptional.get();
+                granularity = data.getGranularity();
+            }
+
+        } catch (JsonProcessingException e) {
+            LogUtil.error(e);
+        }
+        return granularity;
     }
 
 
