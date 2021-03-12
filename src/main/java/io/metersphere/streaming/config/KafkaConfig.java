@@ -15,7 +15,7 @@ public class KafkaConfig {
     private String logTopic;
     @Value("${kafka.test.topic}")
     private String testTopic;
-    @Value("${kafka.partitions:1}")
+    @Value("${kafka.partitions:3}")
     private Integer partitions;
     @Value("${kafka.replicas:1}")
     private Integer replicas;
