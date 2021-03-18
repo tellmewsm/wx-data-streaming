@@ -55,6 +55,10 @@ public class LogConsumer {
         if (StringUtils.contains(content, "Error in NonGUIDriver java.lang.IllegalArgumentException: Problem loading XML from")) {
             testResultService.saveErrorMessage(reportId, "Jmeter exited. Please check jmx and jars.");
         }
+        if (StringUtils.contains(content, "Unable to get local host IP address")) {
+            testResultService.saveErrorMessage(reportId,
+                    "Check node-controller /etc/hosts, `127.0.0.1 ${hostname}` must be contained. Please delete the report and rerun.");
+        }
         // 测试结束
         if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
             metricDataService.save();
