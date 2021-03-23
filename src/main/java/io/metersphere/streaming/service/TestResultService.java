@@ -284,6 +284,7 @@ public class TestResultService {
             AdvancedConfig advancedConfig = objectMapper.readValue(loadTest.getAdvancedConfiguration(), AdvancedConfig.class);
             if (advancedConfig.getGranularity() != null) {
                 granularity = advancedConfig.getGranularity();
+                return granularity;
             }
             AtomicReference<Integer> maxDuration = new AtomicReference<>(0);
             List<List<PressureConfig>> pressureConfigLists = objectMapper.readValue(loadTest.getLoadConfiguration(), new TypeReference<List<List<PressureConfig>>>() {
