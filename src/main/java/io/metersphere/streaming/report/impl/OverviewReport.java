@@ -26,7 +26,7 @@ public class OverviewReport extends AbstractReport {
         return ReportKeys.Overview.name();
     }
 
-    private final DecimalFormat responseTimeFormat = new DecimalFormat("0.0000");
+    private final DecimalFormat format4 = new DecimalFormat("0.0000");
 
     @Override
     public void execute() {
@@ -60,10 +60,10 @@ public class OverviewReport extends AbstractReport {
                 String responseTime = statistics.getAverage();
                 String avgBandwidth = statistics.getReceived();
                 //
-                testOverview.setAvgTransactions(decimalFormat.format(Double.parseDouble(transactions)));
-                testOverview.setAvgResponseTime(responseTimeFormat.format(Double.parseDouble(responseTime) / 1000));
-                testOverview.setResponseTime90(responseTimeFormat.format(Double.parseDouble(tp90) / 1000));
-                testOverview.setAvgBandwidth(decimalFormat.format(Double.parseDouble(avgBandwidth)));
+                testOverview.setAvgTransactions(format2.format(Double.parseDouble(transactions)));
+                testOverview.setAvgResponseTime(format4.format(Double.parseDouble(responseTime) / 1000));
+                testOverview.setResponseTime90(format4.format(Double.parseDouble(tp90) / 1000));
+                testOverview.setAvgBandwidth(format2.format(Double.parseDouble(avgBandwidth)));
             }
         }
 
@@ -78,9 +78,9 @@ public class OverviewReport extends AbstractReport {
         }
 
         testOverview.setMaxUsers(String.valueOf(maxUser.get()));
-        testOverview.setAvgThroughput(decimalFormat.format(hits));
+        testOverview.setAvgThroughput(format2.format(hits));
 
-        testOverview.setErrors(decimalFormat.format(Double.valueOf(error)));
+        testOverview.setErrors(format4.format(Double.valueOf(error)));
 
         saveResult(reportId, testOverview);
     }

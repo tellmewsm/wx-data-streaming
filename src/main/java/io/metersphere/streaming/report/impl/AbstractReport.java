@@ -19,7 +19,7 @@ public abstract class AbstractReport implements Report {
     protected Map<String, SampleContext> sampleContextMap;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final TestResultSaveService testResultSaveService;
-    protected DecimalFormat decimalFormat = new DecimalFormat("0.00");
+    protected DecimalFormat format2 = new DecimalFormat("0.00");
 
     public void init(String reportId, Map<String, SampleContext> sampleContextMap) {
         this.reportId = reportId;
