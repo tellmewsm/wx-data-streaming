@@ -12,6 +12,7 @@ import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.GranularityData;
 import io.metersphere.streaming.commons.constants.TestStatus;
 import io.metersphere.streaming.commons.utils.CommonBeanFactory;
+import io.metersphere.streaming.commons.utils.CompressUtils;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.config.JmeterReportProperties;
 import io.metersphere.streaming.engine.producer.LoadTestProducer;
@@ -189,21 +190,24 @@ public class TestResultService {
                 out.print(content);
             }
         } catch (Exception e) {
-            LogUtil.error(e);
+            LogUtil.error("写入文件失败: ", e);
         } finally {
             myBatisCursorItemReader.close();
         }
 
         try {
             File file = new File(TEMP_DIRECTORY_PATH + File.separator + filename);
-            FileMetadata fileMetadata = fileService.saveFile(file, reportId);
+            File zipFile = new File(TEMP_DIRECTORY_PATH + File.separator + filename + ".zip");
+            CompressUtils.zipFiles(file, zipFile); // 先进行压缩文件
+            FileMetadata fileMetadata = fileService.saveFile(zipFile, reportId);
             LoadTestReportWithBLOBs loadTestReportWithBLOBs = new LoadTestReportWithBLOBs();
             loadTestReportWithBLOBs.setFileId(fileMetadata.getId());
             loadTestReportWithBLOBs.setId(reportId);
             loadTestReportMapper.updateByPrimaryKeySelective(loadTestReportWithBLOBs);
             FileUtils.forceDelete(file);
+            FileUtils.forceDelete(zipFile);
         } catch (Exception e) {
-            LogUtil.error(e);
+            LogUtil.error("保存文件文件失败: ", e);
         }
     }
 
