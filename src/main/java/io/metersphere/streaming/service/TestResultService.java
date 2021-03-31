@@ -172,7 +172,7 @@ public class TestResultService {
                 // 设置queryId
                 .queryId("io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper.fetchTestReportDetails")
                 .build();
-        String filename = reportId + "_" + RandomStringUtils.random(5) + ".jtl";
+        String filename = reportId + "_" + RandomStringUtils.randomAlphabetic(5) + ".jtl";
         try (
                 FileWriter fw = new FileWriter(TEMP_DIRECTORY_PATH + File.separator + filename, true);
                 BufferedWriter bw = new BufferedWriter(fw);
