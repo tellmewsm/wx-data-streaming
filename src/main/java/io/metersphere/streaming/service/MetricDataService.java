@@ -19,9 +19,10 @@ public class MetricDataService {
     @Resource
     private TestResultService testResultService;
 
-    public synchronized void save() {
+    public synchronized int save() {
         CopyOnWriteArrayList<Metric> metricList = metricData.getMetrics();
-        LogUtil.info("save metrics size: " + metricList.size());
+        int size = metricList.size();
+        LogUtil.info("save metrics size: " + size);
         Map<String, List<Metric>> reportMetrics = metricList.stream().collect(Collectors.groupingBy(Metric::getReportId));
         reportMetrics.forEach((reportId, metrics) -> {
             String testId = "";
@@ -34,6 +35,7 @@ public class MetricDataService {
         });
         // 清空 list
         metricList.clear();
+        return size;
     }
 
     public void addToMetricQueue(Metric metric) throws InterruptedException {

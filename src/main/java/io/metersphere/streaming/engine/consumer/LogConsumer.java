@@ -61,10 +61,7 @@ public class LogConsumer {
         }
         // 测试结束
         if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
-            metricDataService.save();
-            Metric metric = new Metric();
-            metric.setReportId(reportId);
-            testResultService.completeReport(metric);
+            completeTest(reportId);
         }
         // 手动停止的测试
         if (StringUtils.equals("none", resourceId)) {
@@ -78,6 +75,21 @@ public class LogConsumer {
                 .content(content)
                 .build();
         logQueue.put(log);
+    }
+
+    private void completeTest(String reportId) throws InterruptedException {
+        int count = 5;
+        while (count-- > 0) {
+            int save = metricDataService.save();
+            if (save == 0) {
+                Thread.sleep(5000);
+                continue;
+            }
+            Metric metric = new Metric();
+            metric.setReportId(reportId);
+            testResultService.completeReport(metric);
+            break; // 执行结束之后计算一次结束
+        }
     }
 
     @PreDestroy
