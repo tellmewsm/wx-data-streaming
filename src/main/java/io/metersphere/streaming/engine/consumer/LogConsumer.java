@@ -81,14 +81,13 @@ public class LogConsumer {
         int count = 5;
         while (count-- > 0) {
             int save = metricDataService.save();
-            if (save == 0) {
-                Thread.sleep(5000);
-                continue;
+            if (save > 0) {
+                Metric metric = new Metric();
+                metric.setReportId(reportId);
+                testResultService.completeReport(metric);
+                break;
             }
-            Metric metric = new Metric();
-            metric.setReportId(reportId);
-            testResultService.completeReport(metric);
-            break; // 执行结束之后计算一次结束
+            Thread.sleep(2000);
         }
     }
 
