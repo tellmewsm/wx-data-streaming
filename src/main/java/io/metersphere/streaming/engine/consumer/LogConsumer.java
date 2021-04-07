@@ -79,15 +79,23 @@ public class LogConsumer {
 
     private void completeTest(String reportId) throws InterruptedException {
         int count = 5;
+        boolean finished = false;
         while (count-- > 0) {
             int save = metricDataService.save();
             if (save > 0) {
                 Metric metric = new Metric();
                 metric.setReportId(reportId);
                 testResultService.completeReport(metric);
+                finished = true;
                 break;
             }
             Thread.sleep(2000);
+        }
+        if (!finished) {
+            metricDataService.save();
+            Metric metric = new Metric();
+            metric.setReportId(reportId);
+            testResultService.completeReport(metric);
         }
     }
 
