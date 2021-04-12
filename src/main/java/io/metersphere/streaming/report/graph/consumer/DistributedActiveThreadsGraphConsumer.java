@@ -77,10 +77,6 @@ public class DistributedActiveThreadsGraphConsumer extends ActiveThreadsGraphCon
             threadName = threadName.substring(0, index);
         }
 
-        index = threadName.lastIndexOf("-");
-        if (index >= 0) {
-            threadName = threadName.substring(0, index);
-        }
         return threadName;
     }
 
