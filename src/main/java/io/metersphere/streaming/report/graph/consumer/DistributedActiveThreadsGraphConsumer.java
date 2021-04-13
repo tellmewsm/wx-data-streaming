@@ -1,5 +1,6 @@
 package io.metersphere.streaming.report.graph.consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.report.core.Sample;
 import org.apache.jmeter.report.processor.MeanAggregatorFactory;
 import org.apache.jmeter.report.processor.graph.AbstractGraphConsumer;
@@ -76,6 +77,8 @@ public class DistributedActiveThreadsGraphConsumer extends ActiveThreadsGraphCon
         if (index >= 0) {
             threadName = threadName.substring(0, index);
         }
+        // 处理后缀
+        threadName = StringUtils.removeEnd(threadName, "-ThreadStarter");
 
         return threadName;
     }
