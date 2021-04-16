@@ -30,11 +30,10 @@ public class MetricDataService {
             for (Metric metric : metrics) {
                 content.append(testResultService.convertToLine(metric));
                 testId = metric.getTestId();
+                metricList.remove(metric);
             }
             testResultService.savePartContent(reportId, testId, content.toString());
         });
-        // 清空 list
-        metricList.clear();
         return size;
     }
 
