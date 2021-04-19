@@ -7,6 +7,7 @@ import io.metersphere.streaming.base.domain.*;
 import io.metersphere.streaming.base.mapper.LoadTestMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportDetailMapper;
 import io.metersphere.streaming.base.mapper.LoadTestReportMapper;
+import io.metersphere.streaming.base.mapper.LoadTestReportResultMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.streaming.base.mapper.ext.ExtLoadTestReportMapper;
 import io.metersphere.streaming.commons.constants.GranularityData;
@@ -20,6 +21,7 @@ import io.metersphere.streaming.model.AdvancedConfig;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.model.PressureConfig;
 import io.metersphere.streaming.report.ReportGeneratorFactory;
+import io.metersphere.streaming.report.base.TestOverview;
 import io.metersphere.streaming.report.impl.AbstractReport;
 import io.metersphere.streaming.report.parse.ResultDataParse;
 import org.apache.commons.io.FileUtils;
@@ -66,6 +68,8 @@ public class TestResultService {
     private LoadTestProducer loadTestProducer;
     @Resource
     private ObjectMapper objectMapper;
+    @Resource
+    private LoadTestReportResultMapper loadTestReportResultMapper;
 
     public static final String TEMP_DIRECTORY_PATH = FileUtils.getTempDirectoryPath();
 
@@ -276,7 +280,29 @@ public class TestResultService {
         } catch (InterruptedException e) {
             LogUtil.error(e);
         } finally {
+            saveReportOverview(reportId);
             testResultSaveService.saveReportReadyStatus(reportId);
+        }
+    }
+
+    private void saveReportOverview(String reportId) {
+        LoadTestReportResultExample example1 = new LoadTestReportResultExample();
+        example1.createCriteria().andReportIdEqualTo(reportId).andReportKeyEqualTo("Overview");
+        List<LoadTestReportResult> loadTestReportResults = loadTestReportResultMapper.selectByExampleWithBLOBs(example1);
+        if (loadTestReportResults.size() > 0) {
+            LoadTestReportResult loadTestReportResult = loadTestReportResults.get(0);
+            String reportValue = loadTestReportResult.getReportValue();
+            try {
+                TestOverview testOverview = objectMapper.readValue(reportValue, TestOverview.class);
+                LoadTestReportWithBLOBs report = new LoadTestReportWithBLOBs();
+                report.setId(reportId);
+                report.setMaxUsers(testOverview.getMaxUsers());
+                report.setAvgResponseTime(testOverview.getAvgResponseTime());
+                report.setTps(testOverview.getAvgTransactions());
+                loadTestReportMapper.updateByPrimaryKeySelective(report);
+            } catch (JsonProcessingException e) {
+                LogUtil.error(e);
+            }
         }
     }
 

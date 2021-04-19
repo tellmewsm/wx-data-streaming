@@ -3,9 +3,8 @@ package io.metersphere.streaming.base.mapper;
 import io.metersphere.streaming.base.domain.LoadTestReport;
 import io.metersphere.streaming.base.domain.LoadTestReportExample;
 import io.metersphere.streaming.base.domain.LoadTestReportWithBLOBs;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface LoadTestReportMapper {
     long countByExample(LoadTestReportExample example);
