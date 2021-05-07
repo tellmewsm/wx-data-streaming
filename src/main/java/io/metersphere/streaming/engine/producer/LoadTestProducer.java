@@ -27,7 +27,7 @@ public class LoadTestProducer {
         }
         try {
             this.kafkaTemplate.send(topic, objectMapper.writeValueAsString(loadTestReport));
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             LogUtil.error("发送成功通知失败", e);
         }
     }
