@@ -24,7 +24,7 @@ public class LoadChartReport extends AbstractReport {
             DecimalFormat decimalFormat = new DecimalFormat("0");
             cs.setyAxis(new BigDecimal(decimalFormat.format(cs.getyAxis())));
         });
-        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsMap.getData(), "transactions", "yAxis2");
+        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsMap.getData(), null, "yAxis2");
         resultList.addAll(hitsList);
 
         saveResult(reportId, resultList);
