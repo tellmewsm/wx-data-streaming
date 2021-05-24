@@ -111,7 +111,7 @@ public class TestResultService {
         content.append(metric.getResponseCode()).append(",");
         // response message
         content.append(",");
-        content.append(metric.getThreadName()).append(",");
+        content.append(warp(metric.getThreadName())).append(",");
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
         // failure message contains \n , etc.
