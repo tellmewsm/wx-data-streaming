@@ -60,7 +60,7 @@ public class LogConsumer {
                     "Check node-controller /etc/hosts, `127.0.0.1 ${hostname}` must be contained. Please delete the report and rerun.");
         }
         // 测试结束
-        if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
+        if (StringUtils.containsAny(content, "Remove container completed")) {
             completeTest(reportId);
         }
         // 手动停止的测试
