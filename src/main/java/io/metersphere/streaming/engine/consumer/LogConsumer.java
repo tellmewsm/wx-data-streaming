@@ -160,6 +160,7 @@ public class LogConsumer {
             StringBuilder content = new StringBuilder();
             for (Log log : logs) {
                 content.append(log.getContent());
+                logs.remove(log);
             }
             Log log = Log.builder()
                     .reportId(reportId)
@@ -169,7 +170,6 @@ public class LogConsumer {
                     .build();
             logResultService.savePartContent(log);
         });
-        logs.clear();
     }
 
     private String fetchGroupKey(Log log) {
