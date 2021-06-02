@@ -63,11 +63,11 @@ public class LogConsumer {
             testResultService.saveErrorMessage(reportId, "There is insufficient memory for the Java Runtime Environment to continue.");
         }
         // 测试结束
-        if (StringUtils.containsAny(content, "Notifying test listeners of end of test")) {
+        if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
             completeTest(reportId);
         }
         // 容器退出
-        if (StringUtils.containsAny(content, "Remove container completed")) {
+        if (StringUtils.contains(content, "Remove container completed")) {
             // todo 容器退出逻辑
         }
         // 手动停止的测试

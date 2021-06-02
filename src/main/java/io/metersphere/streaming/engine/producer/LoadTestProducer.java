@@ -1,6 +1,5 @@
 package io.metersphere.streaming.engine.producer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.base.domain.LoadTestReport;
 import io.metersphere.streaming.commons.utils.LogUtil;
