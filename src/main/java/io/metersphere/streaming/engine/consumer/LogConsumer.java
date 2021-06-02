@@ -59,12 +59,16 @@ public class LogConsumer {
             testResultService.saveErrorMessage(reportId,
                     "Check node-controller /etc/hosts, `127.0.0.1 ${hostname}` must be contained. Please delete the report and rerun.");
         }
+        if (StringUtils.contains(content, "There is insufficient memory for the Java Runtime Environment to continue.")) {
+            testResultService.saveErrorMessage(reportId, "There is insufficient memory for the Java Runtime Environment to continue.");
+        }
         // 测试结束
-        if (StringUtils.containsAny(content,
-                "Notifying test listeners of end of test",
-                "Remove container completed")
-        ) {
+        if (StringUtils.containsAny(content, "Notifying test listeners of end of test")) {
             completeTest(reportId);
+        }
+        // 容器退出
+        if (StringUtils.containsAny(content, "Remove container completed")) {
+            // todo 容器退出逻辑
         }
         // 手动停止的测试
         if (StringUtils.equals("none", resourceId)) {
