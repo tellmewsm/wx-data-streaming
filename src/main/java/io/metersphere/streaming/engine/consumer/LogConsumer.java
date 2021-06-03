@@ -34,7 +34,7 @@ public class LogConsumer {
     @Resource
     private MetricDataService metricDataService;
     private final BlockingQueue<Log> logQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
-    private final CopyOnWriteArrayList<Log> logs = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<Log> logList = new CopyOnWriteArrayList<>();
 
     private boolean isRunning = true;
 
@@ -117,9 +117,9 @@ public class LogConsumer {
             while (isRunning) {
                 try {
                     Log log = logQueue.take();
-                    logs.add(log);
+                    logList.add(log);
                     // 长度达到 queue_size save 一次
-                    int size = logs.size();
+                    int size = logList.size();
                     if (size >= QUEUE_SIZE) {
                         save();
                     }
@@ -136,7 +136,7 @@ public class LogConsumer {
             while (isRunning) {
                 try {
                     // 确保 logs 全部被保存
-                    int size = logs.size();
+                    int size = logList.size();
                     if (logQueue.isEmpty() && size > 0 && size < QUEUE_SIZE) {
                         save();
                     }
@@ -150,8 +150,8 @@ public class LogConsumer {
 
 
     public synchronized void save() {
-        LogUtil.info("save logs size: " + logs.size());
-        Map<String, List<Log>> reportLogs = logs.stream().collect(Collectors.groupingBy(this::fetchGroupKey));
+        LogUtil.info("save logs size: " + logList.size());
+        Map<String, List<Log>> reportLogs = logList.stream().collect(Collectors.groupingBy(this::fetchGroupKey));
         reportLogs.forEach((groupKey, logs) -> {
             String[] ids = StringUtils.split(groupKey, "|");
             String reportId = ids[0];
@@ -160,7 +160,7 @@ public class LogConsumer {
             StringBuilder content = new StringBuilder();
             for (Log log : logs) {
                 content.append(log.getContent());
-                logs.remove(log);
+                logList.remove(log);
             }
             Log log = Log.builder()
                     .reportId(reportId)
