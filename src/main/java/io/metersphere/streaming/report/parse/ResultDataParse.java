@@ -15,10 +15,7 @@ import org.apache.jmeter.report.core.Sample;
 import org.apache.jmeter.report.core.SampleMetadata;
 import org.apache.jmeter.report.dashboard.JsonizerVisitor;
 import org.apache.jmeter.report.processor.*;
-import org.apache.jmeter.report.processor.graph.impl.CodesPerSecondGraphConsumer;
-import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
-import org.apache.jmeter.report.processor.graph.impl.ResponseTimeOverTimeGraphConsumer;
-import org.apache.jmeter.report.processor.graph.impl.TransactionsPerSecondGraphConsumer;
+import org.apache.jmeter.report.processor.graph.impl.*;
 import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
 import org.springframework.batch.item.ExecutionContext;
@@ -44,30 +41,83 @@ public class ResultDataParse {
     public static List<AbstractSampleConsumer> initConsumerList(Integer granularity) {
         List<AbstractSampleConsumer> consumerList = new ArrayList<>();
 
+        // 1
         DistributedActiveThreadsGraphConsumer distributedActiveThreadsGraphConsumer = new DistributedActiveThreadsGraphConsumer();
         distributedActiveThreadsGraphConsumer.setGranularity(granularity);
         distributedActiveThreadsGraphConsumer.initialize();
         consumerList.add(distributedActiveThreadsGraphConsumer);
-
-        HitsPerSecondGraphConsumer hitsPerSecondGraphConsumer = new HitsPerSecondGraphConsumer();
-        hitsPerSecondGraphConsumer.setGranularity(granularity);
-        hitsPerSecondGraphConsumer.initialize();
-        consumerList.add(hitsPerSecondGraphConsumer);
-
-        TransactionsPerSecondGraphConsumer transactionsPerSecondGraphConsumer = new TransactionsPerSecondGraphConsumer();
-        transactionsPerSecondGraphConsumer.setGranularity(granularity);
-        transactionsPerSecondGraphConsumer.initialize();
-        consumerList.add(transactionsPerSecondGraphConsumer);
 
         ResponseTimeOverTimeGraphConsumer responseTimeOverTimeGraphConsumer = new ResponseTimeOverTimeGraphConsumer();
         responseTimeOverTimeGraphConsumer.setGranularity(granularity);
         responseTimeOverTimeGraphConsumer.initialize();
         consumerList.add(responseTimeOverTimeGraphConsumer);
 
+        ResponseTimePercentilesOverTimeGraphConsumer responseTimePercentilesOverTimeGraphConsumer = new ResponseTimePercentilesOverTimeGraphConsumer();
+        responseTimePercentilesOverTimeGraphConsumer.setGranularity(granularity);
+        responseTimePercentilesOverTimeGraphConsumer.initialize();
+        consumerList.add(responseTimePercentilesOverTimeGraphConsumer);
+
+        BytesThroughputGraphConsumer bytesThroughputGraphConsumer = new BytesThroughputGraphConsumer();
+        bytesThroughputGraphConsumer.setGranularity(granularity);
+        bytesThroughputGraphConsumer.initialize();
+        consumerList.add(bytesThroughputGraphConsumer);
+
+        LatencyOverTimeGraphConsumer latencyOverTimeGraphConsumer = new LatencyOverTimeGraphConsumer();
+        latencyOverTimeGraphConsumer.setGranularity(granularity);
+        latencyOverTimeGraphConsumer.initialize();
+        consumerList.add(latencyOverTimeGraphConsumer);
+
+        ConnectTimeOverTimeGraphConsumer connectTimeOverTimeGraphConsumer = new ConnectTimeOverTimeGraphConsumer();
+        connectTimeOverTimeGraphConsumer.setGranularity(granularity);
+        connectTimeOverTimeGraphConsumer.initialize();
+        consumerList.add(connectTimeOverTimeGraphConsumer);
+
+        // 2
+        HitsPerSecondGraphConsumer hitsPerSecondGraphConsumer = new HitsPerSecondGraphConsumer();
+        hitsPerSecondGraphConsumer.setGranularity(granularity);
+        hitsPerSecondGraphConsumer.initialize();
+        consumerList.add(hitsPerSecondGraphConsumer);
+
         CodesPerSecondGraphConsumer responseCodeOverTimeGraphConsumer = new CodesPerSecondGraphConsumer();
         responseCodeOverTimeGraphConsumer.setGranularity(granularity);
         responseCodeOverTimeGraphConsumer.initialize();
         consumerList.add(responseCodeOverTimeGraphConsumer);
+
+        TransactionsPerSecondGraphConsumer transactionsPerSecondGraphConsumer = new TransactionsPerSecondGraphConsumer();
+        transactionsPerSecondGraphConsumer.setGranularity(granularity);
+        transactionsPerSecondGraphConsumer.initialize();
+        consumerList.add(transactionsPerSecondGraphConsumer);
+
+        TotalTPSGraphConsumer totalTPSGraphConsumer = new TotalTPSGraphConsumer();
+        totalTPSGraphConsumer.setGranularity(granularity);
+        totalTPSGraphConsumer.initialize();
+        consumerList.add(totalTPSGraphConsumer);
+
+        // 暂不支持
+//        ResponseTimeVSRequestGraphConsumer responseTimeVSRequestGraphConsumer = new ResponseTimeVSRequestGraphConsumer();
+//        responseTimeVSRequestGraphConsumer.setGranularity(granularity);
+//        responseTimeVSRequestGraphConsumer.initialize();
+//        consumerList.add(responseTimeVSRequestGraphConsumer);
+//
+//        LatencyVSRequestGraphConsumer latencyVSRequestGraphConsumer = new LatencyVSRequestGraphConsumer();
+//        latencyVSRequestGraphConsumer.setGranularity(granularity);
+//        latencyVSRequestGraphConsumer.initialize();
+//        consumerList.add(latencyVSRequestGraphConsumer);
+
+        // 3
+        ResponseTimePercentilesGraphConsumer timePercentilesGraphConsumer = new ResponseTimePercentilesGraphConsumer();
+        timePercentilesGraphConsumer.initialize();
+        consumerList.add(timePercentilesGraphConsumer);
+
+        TimeVSThreadGraphConsumer timeVSThreadGraphConsumer = new TimeVSThreadGraphConsumer();
+        timeVSThreadGraphConsumer.initialize();
+        consumerList.add(timeVSThreadGraphConsumer);
+
+        ResponseTimeDistributionGraphConsumer responseTimeDistributionGraphConsumer = new ResponseTimeDistributionGraphConsumer();
+        responseTimeDistributionGraphConsumer.setGranularity(granularity);
+        responseTimeDistributionGraphConsumer.initialize();
+        consumerList.add(responseTimeDistributionGraphConsumer);
+
 
         ErrorsGraphConsumer errorsGraphConsumer = new ErrorsGraphConsumer();
         errorsGraphConsumer.setGranularity(granularity);
@@ -233,7 +283,13 @@ public class ResultDataParse {
                     String[] data = CSVUtils.parseLine(line);
                     Sample sample = new Sample(row++, sampleMetaData, data);
 
-                    consumerList.forEach(consumer -> consumer.consume(sample, 0));
+                    consumerList.forEach(consumer -> {
+                        try {
+                            consumer.consume(sample, 0);
+                        } catch (Exception e) {
+                            LogUtil.error(consumer.getName(), e);
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
