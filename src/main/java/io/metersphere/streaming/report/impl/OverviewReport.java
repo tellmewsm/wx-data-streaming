@@ -33,7 +33,7 @@ public class OverviewReport extends AbstractReport {
         TestOverview testOverview = new TestOverview();
 
         SampleContext activeDataMap = sampleContextMap.get(DistributedActiveThreadsGraphConsumer.class.getSimpleName());
-        List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap.getData(), "users", "yAxis");
+        List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap.getData(), "", "yAxis");
         Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getGroupName));
         AtomicInteger maxUser = new AtomicInteger();
         collect.forEach((k, cs) -> {
@@ -43,7 +43,7 @@ public class OverviewReport extends AbstractReport {
         });
 
         SampleContext hitsDataMap = sampleContextMap.get(HitsPerSecondGraphConsumer.class.getSimpleName());
-        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsDataMap.getData(), "hits", "yAxis2");
+        List<ChartsData> hitsList = ResultDataParse.graphMapParsing(hitsDataMap.getData(), "", "yAxis2");
         double hits = hitsList.stream().map(ChartsData::getyAxis2)
                 .mapToDouble(BigDecimal::doubleValue)
                 .average().orElse(0);

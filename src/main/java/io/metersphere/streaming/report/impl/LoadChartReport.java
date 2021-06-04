@@ -18,7 +18,7 @@ public class LoadChartReport extends AbstractReport {
     public void execute() {
         SampleContext activeThreadMap = sampleContextMap.get(DistributedActiveThreadsGraphConsumer.class.getSimpleName());
         SampleContext hitsMap = sampleContextMap.get(TransactionsPerSecondGraphConsumer.class.getSimpleName());
-        List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap.getData(), "users", "yAxis");
+        List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap.getData(), "", "yAxis");
         // 使用整数来统计线程数
         resultList.forEach(cs -> {
             DecimalFormat decimalFormat = new DecimalFormat("0");

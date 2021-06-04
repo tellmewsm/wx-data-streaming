@@ -21,8 +21,8 @@ public class ResponseTimeChartReport extends AbstractReport {
         SampleContext activeThreadMap = sampleContextMap.get(DistributedActiveThreadsGraphConsumer.class.getSimpleName());
         SampleContext responseTimeMap = sampleContextMap.get(ResponseTimeOverTimeGraphConsumer.class.getSimpleName());
 
-        List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap.getData(), "users", "yAxis");
-        List<ChartsData> responseTimeList = ResultDataParse.graphMapParsing(responseTimeMap.getData(), "responseTime", "yAxis2");
+        List<ChartsData> resultList = ResultDataParse.graphMapParsing(activeThreadMap.getData(), "", "yAxis");
+        List<ChartsData> responseTimeList = ResultDataParse.graphMapParsing(responseTimeMap.getData(), "", "yAxis2");
         resultList.addAll(responseTimeList);
 
         saveResult(reportId, resultList);
