@@ -13,7 +13,7 @@ public class ActiveThreadsChartReport extends AbstractReport {
 
     @Override
     public String getReportKey() {
-        return ReportKeys.DistributedActiveThreads.name();
+        return ReportKeys.ActiveThreadsChart.name();
     }
 
     @Override
