@@ -345,13 +345,37 @@ public class TestResultService {
             });
             // 按照最长的执行时间来确定
             pressureConfigLists.forEach(pcList -> {
+
+                Optional<PressureConfig> unitOP = pcList.stream()
+                        .filter(pressureConfig -> StringUtils.equalsIgnoreCase(pressureConfig.getKey(), "unit"))
+                        .findFirst();
+                String unit = "S";
+                if (unitOP.isPresent()) {
+                    PressureConfig pressureConfig = unitOP.get();
+                    unit = (String) pressureConfig.getValue();
+                }
+                int t = 1;
+                switch (unit) {
+                    case "S":
+                        t = 1;
+                        break;
+                    case "M":
+                        t = 60;
+                        break;
+                    case "H":
+                        t = 60 * 60;
+                        break;
+                    default:
+                        break;
+                }
+
                 Optional<Integer> maxOp = pcList.stream()
                         .filter(pressureConfig -> StringUtils.equalsAnyIgnoreCase(pressureConfig.getKey(), "hold", "duration"))
                         .map(pressureConfig -> (Integer) pressureConfig.getValue())
                         .max(Comparator.naturalOrder());
                 Integer max = maxOp.orElse(0);
                 if (maxDuration.get() < max) {
-                    maxDuration.set(max);
+                    maxDuration.set(max * t);
                 }
             });
             Optional<GranularityData.Data> dataOptional = GranularityData.dataList.stream()
