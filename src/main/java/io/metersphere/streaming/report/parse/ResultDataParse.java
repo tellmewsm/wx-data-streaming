@@ -35,7 +35,7 @@ import static org.apache.jmeter.report.dashboard.ReportGenerator.*;
 public class ResultDataParse {
 
     private static final String DATE_TIME_PATTERN = "yyyy/MM/dd HH:mm:ss";
-    private static final String TIME_PATTERN = "MM-dd HH:mm:ss";
+    private static final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
 
     public static List<AbstractSampleConsumer> initConsumerList(Integer granularity) {
