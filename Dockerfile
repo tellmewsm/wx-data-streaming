@@ -1,19 +1,25 @@
-FROM metersphere/fabric8-java-alpine-openjdk8-jre
+FROM openjdk:8-jdk-alpine as build
+WORKDIR /workspace/app
 
+COPY target/data-streaming-1.10.jar .
+
+RUN mkdir -p dependency && (cd dependency; jar -xf ../*.jar)
+
+FROM metersphere/fabric8-java-alpine-openjdk8-jre
+VOLUME /tmp
 MAINTAINER FIT2CLOUD <support@fit2cloud.com>
 
 ARG MS_VERSION=dev
+ARG DEPENDENCY=/workspace/app/dependency
 
-RUN mkdir -p /opt/apps
+COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
+COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-ADD target/data-streaming-1.10.jar /opt/apps
-
-ENV JAVA_APP_JAR=/opt/apps/data-streaming-1.10.jar
-
+ENV JAVA_CLASSPATH=/app:/app/lib/*
+ENV JAVA_MAIN_CLASS=io.metersphere.streaming.Application
 ENV AB_OFF=true
-
 ENV MS_VERSION=${MS_VERSION}
-
 ENV JAVA_OPTIONS=-Dfile.encoding=utf-8
 
 CMD ["/deployments/run-java.sh"]
