@@ -6,7 +6,7 @@ COPY target/data-streaming-1.10.jar .
 RUN mkdir -p dependency && (cd dependency; jar -xf ../*.jar)
 
 FROM metersphere/fabric8-java-alpine-openjdk8-jre
-VOLUME /tmp
+
 MAINTAINER FIT2CLOUD <support@fit2cloud.com>
 
 ARG MS_VERSION=dev
