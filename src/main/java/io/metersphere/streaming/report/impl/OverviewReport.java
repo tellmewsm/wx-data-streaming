@@ -39,7 +39,9 @@ public class OverviewReport extends AbstractReport {
         collect.forEach((k, cs) -> {
             Optional<ChartsData> max = cs.stream().max(Comparator.comparing(ChartsData::getyAxis));
             int i = max.get().getyAxis().setScale(0, BigDecimal.ROUND_UP).intValue();
-            maxUser.set(i);
+            if (maxUser.get() < i) {
+                maxUser.set(i);
+            }
         });
 
         SampleContext hitsDataMap = sampleContextMap.get(HitsPerSecondGraphConsumer.class.getSimpleName());
