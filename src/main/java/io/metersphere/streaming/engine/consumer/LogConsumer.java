@@ -50,17 +50,16 @@ public class LogConsumer {
         content = StringUtils.appendIfMissing(content, "\n");
 
         if (StringUtils.contains(content, "Caused by: java.lang.IllegalArgumentException: File")) {
-            testResultService.saveErrorMessage(reportId, "Jmeter exited. Please check jmx and related files");
+            testResultService.saveErrorMessage(reportId, "测试执行缺少相关文件，例如：csv, jar 等");
         }
         if (StringUtils.contains(content, "Error in NonGUIDriver java.lang.IllegalArgumentException: Problem loading XML from")) {
-            testResultService.saveErrorMessage(reportId, "Jmeter exited. Please check jmx and jars.");
+            testResultService.saveErrorMessage(reportId, "无法解析JMX文件，请确认是否缺少执行需要的 jar 等文件");
         }
         if (StringUtils.contains(content, "Unable to get local host IP address")) {
-            testResultService.saveErrorMessage(reportId,
-                    "Check node-controller /etc/hosts, `127.0.0.1 ${hostname}` must be contained. Please delete the report and rerun.");
+            testResultService.saveErrorMessage(reportId, "检查资源池节点上的 /etc/hosts 是否有 127.0.0.1 `当前主机名` 这条配置，请确保这个配置存在并删除报告重新执行");
         }
         if (StringUtils.contains(content, "There is insufficient memory for the Java Runtime Environment to continue.")) {
-            testResultService.saveErrorMessage(reportId, "There is insufficient memory for the Java Runtime Environment to continue.");
+            testResultService.saveErrorMessage(reportId, "资源池没有足够的资源来启动这个测试");
         }
         // 测试结束
         if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
