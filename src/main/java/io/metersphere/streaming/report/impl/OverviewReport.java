@@ -12,10 +12,8 @@ import org.apache.jmeter.report.processor.graph.impl.HitsPerSecondGraphConsumer;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -34,13 +32,13 @@ public class OverviewReport extends AbstractReport {
 
         SampleContext activeDataMap = sampleContextMap.get(DistributedActiveThreadsGraphConsumer.class.getSimpleName());
         List<ChartsData> usersList = ResultDataParse.graphMapParsing(activeDataMap.getData(), "", "yAxis");
-        Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getGroupName));
+        Map<String, List<ChartsData>> collect = usersList.stream().collect(Collectors.groupingBy(ChartsData::getxAxis));
         AtomicInteger maxUser = new AtomicInteger();
         collect.forEach((k, cs) -> {
-            Optional<ChartsData> max = cs.stream().max(Comparator.comparing(ChartsData::getyAxis));
-            int i = max.get().getyAxis().setScale(0, BigDecimal.ROUND_UP).intValue();
-            if (maxUser.get() < i) {
-                maxUser.set(i);
+            double sum = cs.stream().map(ChartsData::getyAxis).mapToDouble(BigDecimal::doubleValue).sum();
+            sum = Math.ceil(sum);
+            if (maxUser.get() < sum) {
+                maxUser.set((int) sum);
             }
         });
 
