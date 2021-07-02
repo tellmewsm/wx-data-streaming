@@ -49,6 +49,8 @@ public class Metric {
     private Integer sampleCount;
     @JsonProperty("FailureMessage")
     private String failureMessage;
+    @JsonProperty("ResponseMessage")
+    private String responseMessage;
     @JsonProperty("ConnectTime")
     private Integer connectTime;
     @JsonProperty("ResponseCode")

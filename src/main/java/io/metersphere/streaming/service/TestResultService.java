@@ -110,7 +110,7 @@ public class TestResultService {
         content.append(warp(metric.getSampleLabel())).append(",");
         content.append(metric.getResponseCode()).append(",");
         // response message
-        content.append(",");
+        content.append(warp(metric.getResponseMessage())).append(",");
         content.append(warp(metric.getThreadName())).append(",");
         content.append(metric.getDataType()).append(",");
         content.append(metric.getSuccess()).append(",");
