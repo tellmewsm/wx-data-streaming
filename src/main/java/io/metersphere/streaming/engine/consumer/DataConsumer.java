@@ -12,6 +12,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
+import static io.metersphere.streaming.service.MetricDataService.QUEUE_SIZE;
+
 @Service
 public class DataConsumer {
 
@@ -46,7 +48,7 @@ public class DataConsumer {
                     metricDataService.addToMetricList(metric);
                     // 长度达到 queue_size save 一次
                     int size = metricDataService.getMetricList().size();
-                    if (size >= MetricData.QUEUE_SIZE) {
+                    if (size >= QUEUE_SIZE) {
                         metricDataService.save();
                     }
                 } catch (Exception e) {
@@ -63,7 +65,7 @@ public class DataConsumer {
                 try {
                     // 确保 metrics 全部被保存
                     int size = metricDataService.getMetricList().size();
-                    if (metricDataService.getMetricQueue().isEmpty() && size > 0 && size < MetricData.QUEUE_SIZE) {
+                    if (metricDataService.getMetricQueue().isEmpty() && size > 0 && size < QUEUE_SIZE) {
                         metricDataService.save();
                     }
                     Thread.sleep(20 * 1000);
