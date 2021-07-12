@@ -21,6 +21,7 @@ import io.metersphere.streaming.engine.producer.LoadTestProducer;
 import io.metersphere.streaming.model.AdvancedConfig;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.model.PressureConfig;
+import io.metersphere.streaming.model.ReportTask;
 import io.metersphere.streaming.report.ReportGeneratorFactory;
 import io.metersphere.streaming.report.base.ReportTimeInfo;
 import io.metersphere.streaming.report.base.TestOverview;
@@ -43,10 +44,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 public class TestResultService {
@@ -72,6 +72,7 @@ public class TestResultService {
     private ObjectMapper objectMapper;
     @Resource
     private LoadTestReportResultMapper loadTestReportResultMapper;
+    private final CopyOnWriteArrayList<ReportTask> runningReports = new CopyOnWriteArrayList<>();
 
     public static final String TEMP_DIRECTORY_PATH = FileUtils.getTempDirectoryPath();
 
@@ -98,7 +99,8 @@ public class TestResultService {
         loadTestReportDetailMapper.insert(record);
 
         // 计算结果
-        completeThreadPool.execute(() -> generateReport(reportId));
+        Future<?> submit = completeThreadPool.submit(() -> generateReport(reportId));
+        runningReports.add(new ReportTask(reportId, submit));
     }
 
     public String convertToLine(Metric metric) {
@@ -228,6 +230,17 @@ public class TestResultService {
         LoadTestReportWithBLOBs report = new LoadTestReportWithBLOBs();
         report.setId(reportId);
         report.setUpdateTime(System.currentTimeMillis());
+        // 取消正在计算的任务
+        try {
+            List<ReportTask> collect = runningReports.stream()
+                    .filter(reportTask -> StringUtils.equals(reportId, reportTask.getReportId()))
+                    .collect(Collectors.toList());
+
+            runningReports.removeAll(collect);
+            collect.forEach(reportTask -> reportTask.getTask().cancel(true));
+        } catch (Exception e) {
+            LogUtil.error("取消计算任务出错: ", e);
+        }
         // 测试结束后执行计算报告
         report.setStatus(TestStatus.Reporting.name());
         loadTestReportMapper.updateByPrimaryKeySelective(report);

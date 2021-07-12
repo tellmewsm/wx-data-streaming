@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.service.MetricDataService;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,11 @@ public class DataConsumer {
     @KafkaListener(id = CONSUME_ID, topics = "${kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(ConsumerRecord<?, String> record) throws Exception {
         Metric metric = objectMapper.readValue(record.value(), Metric.class);
+        if (BooleanUtils.toBoolean(metric.getCompleted())) {
+            metricDataService.save();
+            metricDataService.completeTest(metric);
+            return;
+        }
         if (metric.getTimestamp().getTime() == 0) {
             // dubbo sample 有时候会上传一个timestamp为0的结果，忽略
             return;

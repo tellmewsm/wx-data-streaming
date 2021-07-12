@@ -54,4 +54,8 @@ public class MetricDataService {
     public BlockingQueue<Metric> getMetricQueue() {
         return metricQueue;
     }
+
+    public void completeTest(Metric metric) {
+        testResultService.completeReport(metric);
+    }
 }

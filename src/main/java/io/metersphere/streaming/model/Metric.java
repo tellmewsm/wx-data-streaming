@@ -73,5 +73,7 @@ public class Metric {
     private String threadName;
     @JsonProperty("SampleLabel")
     private String sampleLabel;
+    @JsonProperty("Completed")
+    private Boolean completed;
 
 }

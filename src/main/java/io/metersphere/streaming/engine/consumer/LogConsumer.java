@@ -2,9 +2,7 @@ package io.metersphere.streaming.engine.consumer;
 
 import io.metersphere.streaming.commons.utils.LogUtil;
 import io.metersphere.streaming.model.Log;
-import io.metersphere.streaming.model.Metric;
 import io.metersphere.streaming.service.LogResultService;
-import io.metersphere.streaming.service.MetricDataService;
 import io.metersphere.streaming.service.TestResultService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -31,8 +29,7 @@ public class LogConsumer {
     private LogResultService logResultService;
     @Resource
     private TestResultService testResultService;
-    @Resource
-    private MetricDataService metricDataService;
+
     private final BlockingQueue<Log> logQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
     private final List<Log> logList = new CopyOnWriteArrayList<>();
 
@@ -61,10 +58,7 @@ public class LogConsumer {
         if (StringUtils.contains(content, "There is insufficient memory for the Java Runtime Environment to continue.")) {
             testResultService.saveErrorMessage(reportId, "资源池没有足够的资源来启动这个测试");
         }
-        // 测试结束
-        if (StringUtils.contains(content, "Notifying test listeners of end of test")) {
-            completeTest(reportId);
-        }
+
         // 容器退出
         if (StringUtils.contains(content, "Remove container completed")) {
             // todo 容器退出逻辑
@@ -83,27 +77,6 @@ public class LogConsumer {
         logQueue.put(log);
     }
 
-    private void completeTest(String reportId) throws InterruptedException {
-        int count = 5;
-        boolean finished = false;
-        while (count-- > 0) {
-            int save = metricDataService.save();
-            if (save > 0) {
-                Metric metric = new Metric();
-                metric.setReportId(reportId);
-                testResultService.completeReport(metric);
-                finished = true;
-                break;
-            }
-            Thread.sleep(2000);
-        }
-        if (!finished) {
-            metricDataService.save();
-            Metric metric = new Metric();
-            metric.setReportId(reportId);
-            testResultService.completeReport(metric);
-        }
-    }
 
     @PreDestroy
     public void preDestroy() {
