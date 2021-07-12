@@ -80,7 +80,7 @@ public class TestResultService {
         LogUtil.info("Temp dir: " + TEMP_DIRECTORY_PATH);
     }
 
-    ExecutorService completeThreadPool = Executors.newFixedThreadPool(10);
+    ScheduledExecutorService completeThreadPool = Executors.newScheduledThreadPool(10);
     ExecutorService reportThreadPool = Executors.newFixedThreadPool(30);
 
     @Transactional(rollbackFor = Exception.class)
@@ -164,8 +164,8 @@ public class TestResultService {
         loadTest.setStatus(TestStatus.Completed.name());
         loadTestMapper.updateByPrimaryKeySelective(loadTest);
         LogUtil.info("test completed: " + report.getTestId());
-        // 确保计算报告完全执行
-        completeThreadPool.execute(() -> generateReportComplete(report.getId()));
+        // 确保计算报告完全执行, 等待其他节点都保存后执行计算
+        completeThreadPool.schedule(() -> generateReportComplete(report.getId()), 30, TimeUnit.SECONDS);
     }
 
     private void saveJtlFile(String reportId) {
