@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,7 +34,7 @@ public class LogConsumer {
     @Resource
     private MetricDataService metricDataService;
     private final BlockingQueue<Log> logQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
-    private final List<Log> logList = new ArrayList<>();
+    private final List<Log> logList = new CopyOnWriteArrayList<>();
 
     private boolean isRunning = true;
 

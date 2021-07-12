@@ -5,25 +5,24 @@ import io.metersphere.streaming.model.Metric;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Service
 public class MetricDataService {
     public static final Integer QUEUE_SIZE = 1000;
 
-    private final List<Metric> metrics = new ArrayList<>();
+    private final List<Metric> metricList = new CopyOnWriteArrayList<>();
     private final BlockingQueue<Metric> metricQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
 
     @Resource
     private TestResultService testResultService;
 
     public synchronized int save() {
-        List<Metric> metricList = metrics;
         int size = metricList.size();
         LogUtil.info("save metrics size: " + size);
         Map<String, List<Metric>> reportMetrics = metricList.stream().collect(Collectors.groupingBy(Metric::getReportId));
@@ -45,11 +44,11 @@ public class MetricDataService {
     }
 
     public void addToMetricList(Metric metric) {
-        metrics.add(metric);
+        metricList.add(metric);
     }
 
     public List<Metric> getMetricList() {
-        return metrics;
+        return metricList;
     }
 
     public BlockingQueue<Metric> getMetricQueue() {
