@@ -8,5 +8,4 @@ import lombok.Setter;
 public class PressureConfig {
     private String key;
     private Object value;
-    private String unit;
 }
